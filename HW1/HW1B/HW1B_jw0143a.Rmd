@@ -8,7 +8,9 @@ author: "Jeffrey Williams"
 abstract: "This writeup explores the dataset, FirstY
 earGPA, from the R library, Stat2Data. Categorical variables in this dataset utilize boolean values for identification. These variables are as follows: Male, FirstGen, White, CollegeBound. Numerical variables are as follows: GPA, HSGPA, SATV, SATM, HU, SS."
 date: '`r format(Sys.time(), "%B, %d, %Y")`'
+
 ---
+
 
 ```{r}
 library(Stat2Data)
