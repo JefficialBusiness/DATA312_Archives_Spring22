@@ -5,20 +5,13 @@ output:
   
 title: "Homework 1C - DATA-312"
 author: "Jeffrey Williams"
-abstract: "This writeup explores the dataset, FirstY
-earGPA, from the R library, Stat2Data. Categorical variables in this dataset utilize boolean values for identification. These variables are as follows: Male, FirstGen, White, CollegeBound. Numerical variables are as follows: GPA, HSGPA, SATV, SATM, HU, SS."
-date: '`r format(Sys.time(), "%B, %d, %Y")`'
+abstract: "This writeup explores the dataset, FirstYearGPA, from the R library, Stat2Data. Categorical variables in this dataset utilize boolean values for identification. These variables are as follows: Male, FirstGen, White, CollegeBound. Numerical variables are as follows: GPA, HSGPA, SATV, SATM, HU, SS."
+date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
 
 
-```{r}
-library(Stat2Data)
-head(Stat2Data)
-summary(Stat2Data)
-sapply(Stat2Data, class)
 
-```
 > Accessible as a library in R, this dataset comprises information from "a sample of 2019 first year students at a midwestern college", with the original intention of constructing an informed prediction of their first year GPA using various categorical and numerical variables. 
 
 ```{r echo = FALSE, error = FALSE, warning = FALSE}
@@ -35,12 +28,16 @@ gc()
 # Invoking / installing libraries and fetching data
 library(tidyverse)
 library(Stat2Data)
+data("FirstYearGPA")
+head(FirstYearGPA)
+summary(FirstYearGPA)
+sapply(FirstYearGPA, class)
 
 
 ```
  
 ```{r echo = FALSE, error = FALSE, warning = FALSE}
-data("FirstYearGPA")
+
 
 # Numerical Variables: GPA, HSGPA, SATV, SATM, HU, SS
 # Categorical Variables (All are Binary): Male, FirstGen, White, CollegeBound
@@ -87,12 +84,13 @@ FirstYearGPA %>% ggplot(aes(HSGPA, GPA)) + geom_point()
 # Scatter-plot colored by the categorical variable, CollegeBound
 ggplot(data=FirstYearGPA) +
   geom_point(mapping=aes(x=HSGPA, y=GPA, color=CollegeBound))
-
+```
 
 ```{r echo = FALSE, error = FALSE, warning = FALSE}
 # Scatter-plot with the points colored by the numerical variable, SATM
 ggplot(data=FirstYearGPA) +
   geom_point(mapping=aes(x=HSGPA, y=GPA, color=SATM))
+
 ```
 
 ```{r echo = FALSE, error = FALSE, warning = FALSE}
