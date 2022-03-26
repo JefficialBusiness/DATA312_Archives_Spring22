@@ -14,6 +14,33 @@ date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 > Accessible as a library in R, this dataset comprises information from "a sample of 2019 first year students at a midwestern college", with the original intention of constructing an informed prediction of their first year GPA using various categorical and numerical variables. 
 
+> NUMERICAL VARIABLES:
+
+> GPA: Represents the grade point average of any given student in their first year of college.
+
+> HSGPA: Represents the grade point average of any given student in high school.
+
+> SATV: Represents the SAT score of any given student with respect to the Verbal/Literacy portion.
+
+> SATM: Represents the SAT score of any given student with respect to the Mathematics portion.
+
+> HU: Representative of how many credit hours any given student has earned in high school humanities courses.
+
+> SS: Representative of how many credit hours any given student has earned in high school social science courses.
+
+> CATEGORICAL VARIABLES:
+
+> FirstGen: Boolean variable (0/1) representative of whether student is first in their family to attend college.
+
+> White: Boolean variable (0/1) representative of whether student identifies as White.
+
+> CollegeBound: Boolean variable (0/1) representative of whether student attended a high school where 50% of the student body (or greater) indicates intention to attend college.
+
+
+
+
+
+
 ```{r echo = FALSE, error = FALSE, warning = FALSE}
 # HW1B
 # Jeffrey Williams
@@ -37,7 +64,7 @@ sapply(FirstYearGPA, class)
 ```
  
 ```{r echo = FALSE, error = FALSE, warning = FALSE}
-
+hist(FirstYearGPA$GPA)
 
 # Numerical Variables: GPA, HSGPA, SATV, SATM, HU, SS
 # Categorical Variables (All are Binary): Male, FirstGen, White, CollegeBound
