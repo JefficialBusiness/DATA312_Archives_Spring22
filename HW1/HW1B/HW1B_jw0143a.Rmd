@@ -10,39 +10,39 @@ date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
 ```{r include = FALSE}
-knitr::opts_chunk$set(fig.height = 4.4)
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 6, fig.align = 'center')
 
 ```
 
 
 > Accessible as a library in R, this dataset comprises information from "a sample of 2019 first year students at a midwestern college", with the original intention of constructing an informed prediction of their first year GPA using various categorical and numerical variables. 
 
-> NUMERICAL VARIABLES:
+> **NUMERICAL VARIABLES**
 
-> GPA: Represents the grade point average of any given student in their first year of college.
+> `GPA`: Represents the grade point average of any given student in their first year of college.
 
-> HSGPA: Represents the grade point average of any given student in high school.
+> `HSGPA`: Represents the grade point average of any given student in high school.
 
-> SATV: Represents the SAT score of any given student with respect to the Verbal/Literacy portion.
+> `SATV`: Represents the SAT score of any given student with respect to the Verbal/Literacy portion.
 
-> SATM: Represents the SAT score of any given student with respect to the Mathematics portion.
+> `SATM`: Represents the SAT score of any given student with respect to the Mathematics portion.
 
-> HU: Representative of how many credit hours any given student has earned in high school humanities courses.
+> `HU`: Representative of how many credit hours any given student has earned in high school humanities courses.
 
-> SS: Representative of how many credit hours any given student has earned in high school social science courses.
+> `SS`: Representative of how many credit hours any given student has earned in high school social science courses.
 
-> CATEGORICAL VARIABLES:
+> **CATEGORICAL VARIABLES**
 
-> FirstGen: Boolean variable (0/1) representative of whether student is first in their family to attend college.
+> `FirstGen`: Boolean variable (0/1) representative of whether student expresses that they are the first in their family to attend college.
 
-> White: Boolean variable (0/1) representative of whether student identifies as White.
+> `White`: Boolean variable (0/1) representative of whether student identifies as White.
 
-> CollegeBound: Boolean variable (0/1) representative of whether student attended a high school where 50% of the student body (or greater) indicates intention to attend college.
-
+> `CollegeBound`: Boolean variable (0/1) representative of whether student attended a high school where 50% of the student body (or greater) indicates intention to attend college.
 
 \pagebreak
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+
+```{r error=FALSE, message=TRUE, warning=FALSE, include=FALSE}
 # HW1B
 # Jeffrey Williams
 # Dr. Robinson
@@ -57,14 +57,118 @@ gc()
 library(tidyverse)
 library(Stat2Data)
 data("FirstYearGPA")
+
+```
+
+\pagebreak
+
+
+```{r }
 head(FirstYearGPA)
 summary(FirstYearGPA)
 sapply(FirstYearGPA, class)
 
-
 ```
  
+\pagebreak
+
+> **NUMERICAL VARIABLES**
+
+> The following provides visual representation of the distributions of the variables in the dataset that are classified as numerical. These distributions permit further conceptualization of the standings of students at the closure of their high school careers with respect to their GPA, SAT scores, and the numbers of credit hours they have earned for various types of classes.
+
+
 ```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_histogram(aes(x = GPA)) + 
+  labs(title="GPA Distribution - First Year in College",
+       x = "GPA",
+       y = "Student Count")
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_histogram(aes(x = HSGPA)) + 
+  labs(title="GPA Distribution - High School",
+       x = "High School GPA",
+       y = "Student Count")
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_histogram(aes(x = SATM)) + 
+  labs(title="SAT: Mathematics Score Distribution",
+       x = "SAT-M",
+       y = "Student Count")
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_histogram(aes(x = SATV)) + 
+  labs(title="SAT: Verbal/Literacy Score Distribution",
+       x = "SAT-V", 
+       y = "Student Count")
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_histogram(aes(x = HU)) + 
+  labs(title="Credit Hour Distribution for High School Humanities Courses", 
+       x = "# of Humanities Credit Hours",
+       y = "Student Count")
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_histogram(aes(x = SS)) + 
+  labs(title="Credit Hour Distribution for High School Social Science Courses", 
+       x = "# of Social Science Credit Hours",
+       y = "Student Count")
+
+```
+
+\pagebreak
+
+> **CATEGORICAL VARIABLES**
+
+> The following provides appropriate visual representation of the distributions of categorical variables identified in the dataset. As previously stated, these categorical variables consist strictly of boolean values, with 0 indicating falsity of a certain identity/status of a student, and 1 indicating that a student identifies with a given condition. 
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 3, fig.align = FALSE)
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_bar(aes(x = as.factor(White))) + 
+  labs(title="White Students", 
+       x = "Students who Identify as White",
+       y = "Student Count")
+
+ggplot(FirstYearGPA) + geom_bar(aes(x = as.factor(FirstGen))) + 
+  labs(title="First Generation College
+       Students", 
+       x = "Students who Identify as First
+       Generation to Attend College",
+       y = "Student Count")
+```
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 3, fig.align = 'center')
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(FirstYearGPA) + geom_bar(aes(x = as.factor(CollegeBound))) + 
+  labs(title="College Bound Students", 
+       x = "Students from School with
+       Overall College Interest >= 50%",
+       y = "Student Count")
+
+```
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 6, fig.align = 'center')
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 hist(FirstYearGPA$GPA)
 
 # Numerical Variables: GPA, HSGPA, SATV, SATM, HU, SS
@@ -80,81 +184,21 @@ sd(FirstYearGPA$GPA)
 cor(FirstYearGPA$GPA, FirstYearGPA$HSGPA)
 ```
 
-> The following provides visual representation of the distributions of the variables in the dataset that are classified as numerical. These distributions permit further conceptualization of the standings of students at the closure of their high school careers with respect to their GPA, SAT scores, and the numbers of credit hours they have earned for various types of classes.
+> **ANALYSIS OF RELATIONSHIP BETWEEN HIGH SCHOOL GPA AND COLLEGE GPA**
 
+> The following analyses surrounds the possibility of a relationship between a student's GPA in high school and their GPA in their first year of college. Such an analysis seeks to determine consistency in a student's academic performance in high school versus in college, with particular respect to their GPA. A strong correlation between the `HSGPA` and `GPA` can tell us this. Several variables, such as the student's identification as a first-generation college student, and their score on a particular portion of SAT, are integrated into the following graphical analyses.
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
-knitr::opts_chunk$set(fig.width=6)
-ggplot(FirstYearGPA) + geom_histogram(aes(x = GPA)) + 
-  labs(title="GPA Distribution - First Year in College",
-       x = "GPA",
-       y = "Student Count")
-
-ggplot(FirstYearGPA) + geom_histogram(aes(x = HSGPA)) + 
-  labs(title="GPA Distribution - High School",
-       x = "High School GPA",
-       y = "Student Count")
-
-ggplot(FirstYearGPA) + geom_histogram(aes(x = SATM)) + 
-  labs(title="SAT: Mathematics Score Distribution",
-       x = "SAT-M",
-       y = "Student Count")
-
-ggplot(FirstYearGPA) + geom_histogram(aes(x = SATV)) + 
-  labs(title="SAT: Verbal/Literacy Score Distribution",
-       x = "SAT-V", 
-       y = "Student Count")
-
-ggplot(FirstYearGPA) + geom_histogram(aes(x = HU)) + 
-  labs(title="Credit Hour Distribution for High School Humanities Courses", 
-       x = "# of Humanities Credit Hours",
-       y = "Student Count")
-
-ggplot(FirstYearGPA) + geom_histogram(aes(x = SS)) + 
-  labs(title="Credit Hour Distribution for High School Social Science Courses", 
-       x = "# of Social Science Credit Hours",
-       y = "Student Count")
-
-```
-
-> The following provides appropriate visual representation of the distributions of categorical variables identified in the dataset. As previously stated, these categorical variables consist strictly of boolean values, with 0 indicating falsity of a certain identity/status of a student, and 1 indicating that a student identifies with a given condition.
-
-```{r include = FALSE}
-knitr::opts_chunk$set(fig.height = 3, fig.width = 2)
-
-```
-
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
-ggplot(FirstYearGPA) + geom_bar(aes(x = White)) + 
-  labs(title="White Students", 
-       x = "Students who Identify as White",
-       y = "Student Count")
-
-```
-```{r include = FALSE}
-knitr::opts_chunk$set(fig.height =  4, fig.width = 4)
-
-```
-
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+```{r error=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # First scatter-plot and line of best fit for numerical variables
 # Numerical Variables: College and High School GPA (GPA, HSGPA)
 plot(FirstYearGPA$HSGPA, FirstYearGPA$GPA,
      main = "High School GPA vs. First Year College GPA",
      xlab = "GPA - First Year in College",
      ylab = "GPA - High School")
-myline <- lm(FirstYearGPA$GPA ~ FirstYearGPA$HSGPA)
-abline(myline)
 
-# Retrieving analytical information about graph / line
-summary(myline)
-coef(myline)
 ```
 
-
-
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
-
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # ANALYSIS: There is statistical significance for the given correlation at the 
 # 95% confidence interval
 
@@ -164,82 +208,133 @@ coef(myline)
 ggplot(FirstYearGPA)+geom_point(aes(HSGPA, GPA))
 ggplot(FirstYearGPA, aes(HSGPA, GPA))+geom_point()
 FirstYearGPA %>% ggplot(aes(HSGPA, GPA)) + geom_point()
+
 ```
 
 ```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
-# Scatter-plot colored by the categorical variable, CollegeBound
+# Scatter-plot colored by the categorical variable, FirstGen
 ggplot(data=FirstYearGPA) +
-  geom_point(mapping=aes(x=HSGPA, y=GPA, color=CollegeBound))
-```
+  geom_point(mapping=aes(x=HSGPA, y=GPA, color=FirstGen)) + 
+  labs(title="Relationship Between High School and College GPA + 
+       First Generation Status")
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 # Scatter-plot with the points colored by the numerical variable, SATM
 ggplot(data=FirstYearGPA) +
-  geom_point(mapping=aes(x=HSGPA, y=GPA, color=SATM))
+  geom_point(mapping=aes(x=HSGPA, y=GPA, color=SATM)) + 
+  labs(title="Relationship Between High School and College GPA + 
+       SAT Mathematics Score")
 
 ```
 
 ```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 # Loess Curves
 ggplot(data=FirstYearGPA) +
-  geom_smooth(mapping=aes(x=HSGPA, y=GPA, color=SATM))
+  geom_smooth(mapping=aes(x=HSGPA, y=GPA, color=SATM)) + 
+  labs(title="Relationship Between High School and College GPA")
+
+myline <- lm(FirstYearGPA$GPA ~ FirstYearGPA$HSGPA)
 ```
 
+> Line of Best Fit: Relationship Scatterplots for High School and College GPA
+
 ```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+# Retrieving analytical information about graph / line
+summary(myline)
+coef(myline)
+
+```
+\pagebreak
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # Adding layers upon layers
 ggplot(data=FirstYearGPA) +
   geom_smooth(mapping=aes(x=HSGPA, y=GPA, color=SATM)) +
   geom_point(mapping=aes(x=HSGPA, y=GPA, color=SATM))
-```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 ggplot(data=FirstYearGPA) + 
   geom_smooth(mapping=aes(x=HSGPA, y=GPA, linetype=as.factor(FirstGen)))
-```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 ggplot(data=FirstYearGPA) +
   geom_point(mapping=aes(x=HSGPA, y=GPA, color=SATM)) +
   geom_smooth(mapping=aes(x=HSGPA, y=GPA, color=SATM)) 
 ```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # Some experimentation with Facet Plots
 ggplot(data=FirstYearGPA) + 
   geom_point(mapping=aes(x=HSGPA, y=GPA)) + 
   facet_wrap(~FirstGen)
-```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 ggplot(data=FirstYearGPA) + 
   geom_point(mapping=aes(x=HSGPA, y=GPA)) + 
   facet_wrap(CollegeBound~FirstGen)
-```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 ggplot(data=FirstYearGPA) + 
   geom_point(mapping=aes(x=HSGPA, y=GPA)) + 
   facet_grid(CollegeBound~FirstGen)
+
 ```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # Creating subsets based on Boolean categorical variable, White
 iswhite <- FirstYearGPA[FirstYearGPA$White==1,]
 nonwhite <- FirstYearGPA[FirstYearGPA$White==0,]
 
 # Conversion of binary variable, White, into Boolean statements for future use
 FirstYearGPA$whiteBoolean <- FirstYearGPA$White > 0
+FirstYearGPA$firstGenBoolean <- FirstYearGPA$FirstGen > 0
 ```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # T-test: Statistically Significant difference at 95% CI with p-value = 0.00025
 t.test(nonwhite$GPA, iswhite$GPA)
 ```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # Bar plot understanding proportion that are first-generation college students
 ggplot(data=FirstYearGPA) + geom_bar(mapping=aes(x=FirstGen, y=stat(prop)))
 ```
+
+\pagebreak
+
+> **ANALYSIS OF RELATIONSHIP BETWEEN FIRST GENERATION STATUS AND IDENTIFICATION AS WHITE/NON-WHITE**
+
+> The following evaluates whether there exists a relationship between a student's identification as being the first in their family to attend college with their racial identification as White. The potential conclusions relate to whether trends with first-gen statuses exist in white and non-white students. Are there more first-gens among non-white populations? White populations? The following analyses seek such answers in this dataset.
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 3, fig.align = FALSE)
+
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
+# Creating a pie-chart
+mytable <- table(FirstYearGPA$White)
+myLabels <- names(mytable)
+pie(mytable, myLabels, main="% of White Students")
+```
+
+```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+# Step 43b: examining ratios; how many non-white/white first-gens?
+ggplot(data=FirstYearGPA) + geom_bar(mapping=aes(x=as.factor(firstGenBoolean), fill=as.factor(whiteBoolean)),
+                                     position="fill") + 
+  labs(title="Percentage of First Gen 
+       Students who are White", 
+       x = "Is First Gen?",
+       y = "Percentage of White Students",
+       fill = "Is White?")
+
+ggplot(data=FirstYearGPA) + geom_bar(mapping=aes(x=as.factor(whiteBoolean), fill=as.factor(firstGenBoolean)),
+                                     position="fill") + 
+  labs(title="Percentage of White Students 
+       who are First Gen", 
+       x = "Is White?",
+       y = "Percentage of First Gen Students",
+       fill = "Is First Gen?")
+
+
+```
+
+> Chi-Squared Test: Expected vs. Actual Relationship Between First Gen Status and Identification as White
 
 ```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 # Chi-square test on two categorical variables
@@ -251,29 +346,36 @@ chsq
 chsq$observed
 chsq$expected
 round(chsq$expected, 2)
+
 ```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
-# Creating a pie-chart
-mytable <- table(FirstYearGPA$White)
-myLabels <- names(mytable)
-pie(mytable, myLabels, main="% of White Students")
+\pagebreak
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 3, fig.align = 'center')
+
 ```
 
-```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
-# Step 43b: examining ratios; how many non-white/white first-gens?
-ggplot(data=FirstYearGPA) + geom_bar(mapping=aes(x=FirstGen, fill=whiteBoolean),
-                                     position="fill")
-```
+> **ANALYSIS OF RELATIONSHIP BETWEEN GPA AND IDENTIFICATION AS WHITE/NON-WHITE**
+
+> The following table represents the distribution of first-year college GPAs among students, adjusted to also reflect the population of white/non-white students. It seeks to determine if there is a trend in lower/higher GPAs in students depending on their identification as white or non-white.
 
 ```{r echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
 # Use of stat summary, examining GPA differences in those who identify with
 # category "White" and those who do not
 ggplot(data=FirstYearGPA) +
-  stat_summary(mapping=aes(x=White, y=GPA))
+  stat_summary(mapping=aes(x=as.factor(White), y=GPA)) + 
+  labs(title="First Year College GPA Distro 
+  between White and 
+  Non-White Students", 
+       x = "Is White?",
+       y = "GPA")
 
 # 45. stat_summary appears to be associated with geom_pointrange. I figured this
 # out by submitting "?stat_summary" into the console and looking at usage
 # information.
 ```
 
+> **KEY FINDINGS & CONCLUSION**
+
+> Of the three analyses conducted - the first dealing with the correlation between a student's high school GPA and their GPA in their first year of college, the second dealing with the relationship between first gen status and identification as white/non-white, and the third dealing with the relationship between a student's white/non-white identification and GPA trends - several important findings came to fruition. Firstly, there is a rather strong correlation between high school GPA and college GPA with several outliers. Overall, it is predictable that given GPA data, students are likely to perform similarly in college to what was typical of their academic performance in high school. Their GPA is likely to be similar to what they earned in high school. Secondly, it is evident that there is significant relationship at the 95% confidence interval that a student's identification as a first-gen college student is likely to be contingent on whether they identify as white/non-white. Particularly, it is evident that students who identify as White are less likely to be first-gen college students. Lastly, it is evident that higher first-year college GPAs trend in students who identify as White, concentrating narrowly between 3.1 and 3.2.
