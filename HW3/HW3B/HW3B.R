@@ -159,7 +159,49 @@ ei %>% group_by(key) %>%
   ggplot(aes(reorder(key, desc(n)), n)) + geom_col()
 
 # SHIFTING TO MIDI FILES OF CHOICE
-# File 1: 
+# File 1: https://musescore.com/user/22574601/scores/6544221
+# File 2: https://bitmidi.com/queen-bohemian-rhapsody-mid
 
-# This took longer on my home desktop (Intel x86) than on my ARM-based MacBook
-# which I mentioned runs RStudio entirely through x86 to ARM translation. Wow!
+# The first file is an opening from the first season of one of my favorite 
+# anime, The Quintessential Quintuplets.
+# The second file is a version of Queen's "Bohemian Rhapsody"
+
+bohemian <- read_midi('Queen - Bohemian Rhapsody.midi')
+gotoubun <- read_midi('gotoubun_no_kimochi.midi')
+
+# Observations: Both "Bohemian Rhapsody" and "Gotoubun no Kimochi" contain
+# a wide variety of events, several of them being indicative that both are
+# recordings, rather than composures of sheet music. Specifically, in addition
+# to a presence of events such as changes in time and key signatures, programs, 
+
+my_songs <- bind_rows(mutate(bach, name = 'bohemian'),
+                   mutate(edwin_improv, name = 'gotoubun'))
+
+
+
+my_songs %>% group_by(name) %>% ggplot(aes(x = name, y = length)) +
+  geom_boxplot()
+
+my_songs %>% group_by(name) %>% count(length) %>% 
+  ggplot(aes(x = length, y = n, color = name)) + geom_point() + 
+  scale_x_log10() +
+  scale_y_log10()
+
+
+my_songs_notes <- my_songs %>% filter(!is.na(pitch)) %>%
+  mutate(as_music_df(pitch),
+         end_time = time + length)
+
+my_songs_notes %>% group_by(name) %>% 
+  ggplot(aes(x = freq, y = velocity, color = length)) + 
+  geom_point() + facet_wrap(~name)
+
+my_songs_notes %>% filter(name=='gotoubun') %>% 
+  ggplot(aes(xmin=time,xmax=end_time,y=freq,color=velocity)) +
+  geom_linerange() +
+  scale_y_log10()
+
+# Checking Keys
+gotoubun %>% filter(event == 'Note On') %>% select(pitch) %>%
+  map(~is_diatonic(.x, key = 'c'))
+
