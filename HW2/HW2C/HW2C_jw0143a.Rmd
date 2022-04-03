@@ -1,0 +1,39 @@
+---
+output:
+  pdf_document: default
+  
+title: "Homework 2C - DATA-312"
+author: "Jeffrey Williams"
+abstract: "This writeup explores the "
+date: '`r format(Sys.time(), "%d, %B %Y")`'
+
+---
+
+```{r message=TRUE, warning=TRUE, include=FALSE}
+# Load Libraries
+library(tidyverse)
+library(gutenbergr)
+library(tidytext)
+
+dickens_list <- read_csv('dickens_gutenberg.csv')
+mirror <- 'http://gutenberg.readingroo.ms/'
+book <- gutenberg_download(dickens_list$'Gutenberg ID'[1], mirror = mirror)
+
+for(i in 2:nrow(dickens_list)) {
+  book <- book %>% add_row(gutenberg_download(dickens_list$`Gutenberg ID`[i],
+                                              mirror = mirror))
+}
+
+tidy_dickens <- book %>% unnest_tokens(word, text) %>%
+  count(gutenberg_id, word, sort = TRUE) %>%
+  inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID"))
+
+total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
+
+```
+
+```{r message=TRUE, warning=TRUE, include=FALSE}
+
+
+
+```
