@@ -22,12 +22,11 @@ total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
 # Retrieving / applying associated sentiments of words using "bing" lexicon
 bing_sentiments <- get_sentiments("bing")
 
-tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Type) %>%
-  count(sentiment)
+tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments)
 
 # Graphical analysis of gathered sentiment information
-tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Type) %>%
-  count(sentiment) %>% ggplot(aes(Type, n, fill=sentiment)) + 
+tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
+  count(sentiment) %>% ggplot(aes(Name, n, fill=sentiment)) + 
   geom_col(position='dodge')
 
 # Contingency table on sentiment information - widening for multi. relationships

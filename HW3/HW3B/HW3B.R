@@ -173,6 +173,7 @@ gotoubun <- read_midi('gotoubun_no_kimochi.midi')
 # a wide variety of events, several of them being indicative that both are
 # recordings, rather than composures of sheet music. Specifically, in addition
 # to a presence of events such as changes in time and key signatures, programs, 
+# tempo, and notes, there are several controller-related events as well.
 
 my_songs <- bind_rows(mutate(bach, name = 'bohemian'),
                    mutate(edwin_improv, name = 'gotoubun'))
