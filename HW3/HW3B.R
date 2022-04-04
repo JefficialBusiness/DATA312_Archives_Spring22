@@ -15,19 +15,19 @@ library(tuneR)
 bach <- read_midi('bach_846_format0.midi')
 edwin_improv <- read_midi('improv.midi')
 edwin_improv2 <- read_midi('improv2.midi')
-duodecatonic <- read_midi('justin_rubin_lyric.midi')
+duodecaphonic <- read_midi('justin_rubin_lyric.midi')
 
 # Retrieving summaries of types of data frames in all 4 files
 count(bach, event, name = 'bach') %>% 
   full_join(count(edwin_improv, event, name  = 'edwin_improv')) %>%
   full_join(count(edwin_improv2, event, name  = 'edwin_improv2')) %>%
-  full_join(count(duodecatonic, event, name = 'duodecatonic'))
+  full_join(count(duodecaphonic, event, name = 'duodecaphonic'))
 
 # Restructuring data for increased versatility in analysis
 songs <- bind_rows(mutate(bach, name = 'bach'),
                    mutate(edwin_improv, name = 'edwin_improv'),
                    mutate(edwin_improv2, name = 'edwin_improv2'),
-                   mutate(duodecatonic, name = 'duodecatonic'))
+                   mutate(duodecaphonic, name = 'duodecaphonic'))
 
 # Explorative Analysis using more versatile tidyverse table
 songs %>% group_by(name) %>% count(event) %>% 
@@ -113,7 +113,7 @@ songs_notes %>% filter(name == 'edwin_improv2') %>%
   ggplot(aes(xmin = time, xmax = end_time, y = freq, color = velocity)) +
   geom_linerange() + scale_y_log10()
 
-songs_notes%>%filter(name=='duodecatonic') %>%
+songs_notes%>%filter(name=='duodecaphonic') %>%
   ggplot(aes(xmin=time,xmax=end_time,y=freq,color=velocity)) +
   geom_linerange() + scale_y_log10()
 
@@ -178,31 +178,44 @@ gotoubun <- read_midi('gotoubun_no_kimochi.midi')
 my_songs <- bind_rows(mutate(bach, name = 'bohemian'),
                    mutate(edwin_improv, name = 'gotoubun'))
 
-
-
+# Note length distribution analysis
 my_songs %>% group_by(name) %>% ggplot(aes(x = name, y = length)) +
   geom_boxplot()
 
-my_songs %>% group_by(name) %>% count(length) %>% 
-  ggplot(aes(x = length, y = n, color = name)) + geom_point() + 
-  scale_x_log10() +
-  scale_y_log10()
-
+# Observation: Gotoubun no Kimochi's note length distribution is rather 
+# condensed near the bottom, indicating that notes are typically short. The few
+# outliers are relatively short in comparison to Bohemian Rhapsody, where
+# there are clearly several longer notes, with several very long outliers, one
+# even holding out for a length of 7000. The distribution is quite skewed in
+# Gotoubun no Kimochi, with many of the outliers above the interquartile range,
+# though they are close together. Bohemian Rhapsody's distribution is extremely 
+# skewed in favor of notes longer than than the interquartile range, considering 
+# the very long outlier note.
 
 my_songs_notes <- my_songs %>% filter(!is.na(pitch)) %>%
   mutate(as_music_df(pitch),
          end_time = time + length)
 
+# Pitch vs. velocity analysis
 my_songs_notes %>% group_by(name) %>% 
   ggplot(aes(x = freq, y = velocity, color = length)) + 
   geom_point() + facet_wrap(~name)
 
+# Observation:
+
+# Plotting note frequencies with respect to time
 my_songs_notes %>% filter(name=='gotoubun') %>% 
   ggplot(aes(xmin=time,xmax=end_time,y=freq,color=velocity)) +
   geom_linerange() +
   scale_y_log10()
 
+# Observation:
+
 # Checking Keys
 gotoubun %>% filter(event == 'Note On') %>% select(pitch) %>%
-  map(~is_diatonic(.x, key = 'c'))
+  map(~is_diatonic(.x, key = 'e'))
+
+bohemian %>% filter(event == 'Note On') %>% select(pitch) %>%
+  map(~is_diatonic(.x, key = 'a'))
+
 

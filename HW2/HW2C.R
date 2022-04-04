@@ -15,47 +15,48 @@ for(i in 2:nrow(dickens_list)) {
 
 tidy_dickens <- book %>% unnest_tokens(word, text) %>%
   count(gutenberg_id, word, sort = TRUE) %>%
-  inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID"))
+  inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID")) 
 
 total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
 
-# Retrieving / applying associated sentiments of words using "bing" lexicon
+# Sentiment Analysis - Bing
 bing_sentiments <- get_sentiments("bing")
 
-tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments)
+tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name)
 
-# Graphical analysis of gathered sentiment information
-tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
+# Graphs
+tidy_dickens %>%
   count(sentiment) %>% ggplot(aes(Name, n, fill=sentiment)) + 
-  geom_col(position='dodge')
+  geom_col(position='dodge')  + 
+  labs(title="Dickens Sentiment Distributions - Bing Lexicon",
+       x = "Work",
+       y = "Word Count")
 
-# Contingency table on sentiment information - widening for multi. relationships
-ct <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Type) %>%
+# Contingency table
+ct <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
   count(sentiment) %>% pivot_wider(names_from = sentiment, values_from = n) %>%
-  column_to_rownames(var = "Type")
+  column_to_rownames(var = "Name")
 
 # Chi-sq test 
 chSq <- chisq.test(ct)
 chSq
 
-# Analysis of chi-square test - expected values and implications regarding
-# relationships
 chSq$observed
 chSq$expected
 chSq$stdres
 
-# Pivoting to the use of "afinn" lexicon to determine sentiment by word weight
+# Sentiment Analysis - afinn
 afinn_sentiments <- get_sentiments("afinn")
 
-tidy_dickens_sent <- tidy_dickens %>%
+tidy_dickens_afinn <- tidy_dickens %>%
   inner_join(afinn_sentiments) %>% inner_join(bing_sentiments)
 
-tidy_dickens_sent %>% group_by(Type) %>% 
+tidy_dickens_afinn %>% group_by(Name) %>% 
   summarize(value = mean(value))
 
-tidy_dickens_sent %>% ggplot(aes(Type, value)) + geom_violin()
+tidy_dickens_afinn %>% ggplot(aes(Name, value)) + geom_violin()
 
-data_for_acast <- tidy_dickens_sent %>% 
+data_for_acast <- tidy_dickens_afinn %>% 
   count(word, sentiment, sort = TRUE)
 
 acasted <- data_for_acast %>% acast(word ~ sentiment, value.var = "n",
