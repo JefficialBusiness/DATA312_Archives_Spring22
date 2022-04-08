@@ -1,7 +1,7 @@
-Gutenberg ID,Name
-730,"Oliver Twist"
-766,"David Copperfield"
-786,"Hard Times"
-1023,"Bleak House"
-883,"Our Mutual Friend"
-580,"The Pickwick Papers"
+Gutenberg ID,Name,start
+730,Oliver Twist,113
+766,David Copperfield,82
+786,Hard Times,119
+1023,Bleak House,81
+883,Our Mutual Friend,115
+580,The Pickwick Papers,256

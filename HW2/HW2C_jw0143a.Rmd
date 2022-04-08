@@ -10,30 +10,84 @@ date: '`r format(Sys.time(), "%d, %B %Y")`'
 ---
 
 ```{r message=TRUE, warning=TRUE, include=FALSE}
+rm(list=ls())
+gc()
+
 # Load Libraries
 library(tidyverse)
 library(gutenbergr)
 library(tidytext)
+library(reshape2)
+library(wordcloud)
+
 
 dickens_list <- read_csv('dickens_gutenberg.csv')
 mirror <- 'http://gutenberg.readingroo.ms/'
-book <- gutenberg_download(dickens_list$'Gutenberg ID'[1], mirror = mirror)
+book <- gutenberg_download(dickens_list$`Gutenberg ID`[1],
+                           mirror = mirror) %>% slice(dickens_list$start[1]:n())
 
 for(i in 2:nrow(dickens_list)) {
   book <- book %>% add_row(gutenberg_download(dickens_list$`Gutenberg ID`[i],
-                                              mirror = mirror))
+                                              mirror = mirror) %>% slice(dickens_list$start[i]:n()))
 }
 
 tidy_dickens <- book %>% unnest_tokens(word, text) %>%
   count(gutenberg_id, word, sort = TRUE) %>%
-  inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID"))
+  inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID")) 
 
 total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
 
-```
-
-```{r message=TRUE, warning=TRUE, include=FALSE}
-
-
+bing_sentiments <- get_sentiments("bing")
 
 ```
+
+
+> **ANALYSIS OF SENTIMENT IN DICKENS - USING THE BING LEXICON**
+
+> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible all of them. Is Dickens prone to writing generally negative works?
+
+> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in proportion for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.
+
+
+
+```{r message=TRUE, warning=FALSE, include=TRUE}
+
+tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name)
+
+tidy_dickens %>%
+  count(sentiment) %>% ggplot(aes(Name, n, fill=sentiment)) + 
+  geom_col(position='dodge')  + 
+  labs(title="Dickens Sentiment Distributions - Bing Lexicon",
+       x = "Work",
+       y = "Word Count")
+
+
+```
+
+> It is strongly implied here the conclusion that sad themes are recurrent in the work of Dickens. However, this assertion could be even more strongly substantiated by a chi-square test. 
+
+```{r message=TRUE, warning=FALSE, include=TRUE}
+# Contingency table
+ct <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
+  count(sentiment) %>% pivot_wider(names_from = sentiment, values_from = n) %>%
+  column_to_rownames(var = "Name")
+
+# Chi-sq test 
+chSq <- chisq.test(ct)
+chSq
+
+chSq$observed
+chSq$expected
+chSq$stdres
+
+afinn_sentiments <- get_sentiments("afinn")
+
+```
+
+> The Chi-Squared test identifies a p-value of `r chSq$p.value`, meaning that there is no level of significance here from a more numerical standpoint. With this lack of significance in mind, it can be concluded, therefore, that it is a typicality in Dickens to write generally negative pieces. What a sad individual he was!
+
+> **ANALYSIS OF SENTIMENT IN DICKENS - USING THE AFINN LEXICON**
+
+> Similarly to the Bing lexicon, the AFINN lexicon is used to evaluate the sentiment of a variety of words. In this case, the AFINN lexicon includes `r nrow(afinn_sentiments)` words from the English language. The key difference though is that rather than sorting individual words into different categories, AFINN instead assigns each included word an integer between -5 (most negative) and 5 (most positive). This is helpful in allowing us to understand the weight of a word's sentiment. In other words, in addition to showing that a word is negative or positive, it also helps us understand how negative or how positive a word is.
+
+> Here, we apply the AFINN lexicon to our dataframe consisting of 
