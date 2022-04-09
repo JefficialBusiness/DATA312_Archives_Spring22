@@ -9,7 +9,7 @@ date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
 
-```{r error=FALSE, message=TRUE, warning=FALSE, include=FALSE}
+```{r echo=FALSE, error=FALSE, message=TRUE, warning=FALSE, include=FALSE}
 rm(list=ls())
 gc()
 
@@ -35,6 +35,8 @@ tidy_dickens <- book %>% unnest_tokens(word, text) %>%
   count(gutenberg_id, word, sort = TRUE) %>%
   inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID")) 
 
+tidy_dickens_no_sw <- tidy_dickens %>% anti_join(stop_words)
+
 total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
 
 bing_sentiments <- get_sentiments("bing") 
@@ -42,22 +44,22 @@ bing_sentiments <- get_sentiments("bing")
 ```
 
 
-> **ANALYSIS OF SENTIMENT IN DICKENS - USING THE BING LEXICON**\
+> **ANALYSIS OF SENTIMENT IN DICKENS - USING THE BING LEXICON**
 
-> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible all of them. Is Dickens prone to writing generally negative works?\
+> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible all of them. Is Dickens prone to writing generally negative works? A little more far-reaching, but can one imply the typicalities in his perspective and mood? What follows is an effort to arrive at more clear answers to such questions.
 
-> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in proportion for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.\
+> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in proportion for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.
 
-```{r error=FALSE, message=TRUE, warning=FALSE, include=TRUE}
+```{r echo=FALSE, error=FALSE, message=TRUE, warning=FALSE, include=TRUE}
 
 tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name)
 
 tidy_dickens %>%
-  count(sentiment) %>% ggplot(aes(Name, n, fill=sentiment)) + 
+  count(sentiment) %>% ggplot(aes(n, Name, fill=sentiment)) + 
   geom_col(position='dodge')  + 
   labs(title="Dickens Sentiment Distributions - Bing Lexicon",
-       x = "Work",
-       y = "Word Count")
+       x = "Word Count",
+       y = "Work, by Title")
 
 
 ```
@@ -121,4 +123,37 @@ chSq2$stdres
 
 ```
 
-> Note the high p-value of `r chSq$p.value`, which is immediately indicative that, at the very least in the context of this sample size, there is absolutely no phenomenon event happening. \
+> Note the high p-value of `r chSq$p.value`, which is immediately indicative that, at the very least in the context of this sample size, there are no differences between these works of Dickens in terms of sentiment. This is rather consistent with the general uniformity in the "violin" graph above. \
+
+> Though no clear classification could be found for the genre of these works with respect to sentiment (ex. Tragedy vs. Comedy) in the midst of searching various platforms, it is evident that Dickens' work, particularly the work included in the sample, are likely to be considered tragedies. Moreover, it is inferrable that Dickens is prone to writing tragedies. \
+
+> **ANALYSIS OF WORD COMMONALITIES IN DICKENS**
+
+> The frequencies of words can sometimes be indicative of major themes/characters/sentiment/etc. in a work. Here, we use wordclouds as a means of visualizing the most common words in Dickens' work. \
+
+> Below is a wordcloud representing the dataframe of all of Dickens' work. \
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+tidy_dickens_no_sw %>% with(wordcloud(word, n, max.words=100))
+
+
+# Comment: This is undoubtedly drastic, but as far as I can tell, it works.
+# Do let me know if I've made any errors.
+
+for(i in 1:nrow(dickens_list)) {
+  gutenberg_download(dickens_list$`Gutenberg ID`[i],
+       mirror = mirror) %>% slice(dickens_list$start[i]:n()) %>% 
+    unnest_tokens(word, text) %>% count(gutenberg_id, word, sort = TRUE) %>%
+    inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID")) %>% 
+    anti_join(stop_words) %>% with(wordcloud(word, n, max.words=100)) 
+}
+
+```
+> **ZIPF'S LAW TO DETERMINE **
+
+```{r}
+words_by_rank <- tidy_dickens %>% group_by(Name) %>% 
+  mutate(rank = row_number(), frequency = n/total) %>% ungroup()
+
+```
