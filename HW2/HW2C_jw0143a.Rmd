@@ -39,6 +39,8 @@ tidy_dickens_no_sw <- tidy_dickens %>% anti_join(stop_words)
 
 total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
 
+dickens_words <- left_join(tidy_dickens, total_words)
+
 bing_sentiments <- get_sentiments("bing") 
 
 ```
@@ -108,6 +110,11 @@ new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
 
 > To give numerial insight, we once again conduct a Chi-Squared test to allow for better comprehension of the above graph. \
 
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.5, fig.width = 3, fig.align = FALSE)
+
+```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
   count(sentiment) %>% pivot_wider(names_from = sentiment, values_from = n) %>%
@@ -127,15 +134,13 @@ chSq2$stdres
 
 > Though no clear classification could be found for the genre of these works with respect to sentiment (ex. Tragedy vs. Comedy) in the midst of searching various platforms, it is evident that Dickens' work, particularly the work included in the sample, are likely to be considered tragedies. Moreover, it is inferrable that Dickens is prone to writing tragedies. \
 
-> **ANALYSIS OF WORD COMMONALITIES IN DICKENS**
+> **ANALYSIS OF WORD COMMONALITIES IN DICKENS - WORDCLOUDS**
 
 > The frequencies of words can sometimes be indicative of major themes/characters/sentiment/etc. in a work. Here, we use wordclouds as a means of visualizing the most common words in Dickens' work. \
 
-> Below is a wordcloud representing the dataframe of all of Dickens' work. \
+> Below are a series of wordclouds for each work of Dickens. \
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-tidy_dickens_no_sw %>% with(wordcloud(word, n, max.words=100))
 
 
 # Comment: This is undoubtedly drastic, but as far as I can tell, it works.
@@ -150,10 +155,39 @@ for(i in 1:nrow(dickens_list)) {
 }
 
 ```
-> **ZIPF'S LAW TO DETERMINE **
 
-```{r}
-words_by_rank <- tidy_dickens %>% group_by(Name) %>% 
+> Some observations worth noting are the immediately evident dominance of the names of main characters and elements from the titles of the story. For example, Oliver Twist is well-implied to place emphasis on the main character, Oliver, based on the largest size 
+
+> Below is a wordcloud based on the master dataframe containing all words from all work from the sample.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+tidy_dickens_no_sw %>% with(wordcloud(word, n, max.words=100))
+
+```
+
+> **ANALYSIS OF WORD COMMONALITIES IN DICKENS - ZIPFS LAW**
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = FALSE, fig.width = FALSE, fig.align = FALSE)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+words_by_rank <- dickens_words %>% group_by(Name) %>% 
   mutate(rank = row_number(), frequency = n/total) %>% ungroup()
+
+lfit <- lm(log10(frequency) ~ log10(rank), data = words_by_rank)
+
+words_by_rank %>% ggplot(aes(rank, frequency, color = Name)) +
+  geom_line(show.legend = FALSE) + scale_x_log10() + scale_y_log10() +
+  geom_abline(intercept = lfit$coefficients["(Intercept)"],
+              slope = lfit$coefficients["log10(rank)"])
+
+dickens_tf_idf <- dickens_words %>% bind_tf_idf(word, Name, n) %>%
+  arrange(desc(tf_idf))
+
+dickens_tf_idf %>% group_by(Name) %>% slice_max(tf_idf, n = 10) %>%
+  ggplot(aes(tf_idf, fct_reorder(word, tf_idf), fill=Name)) + 
+  geom_col(show.legend = FALSE) + facet_wrap(~Name, scales = "free")
 
 ```
