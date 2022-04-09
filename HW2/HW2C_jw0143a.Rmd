@@ -9,7 +9,7 @@ date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
 
-```{r message=TRUE, warning=TRUE, include=FALSE}
+```{r error=FALSE, message=TRUE, warning=FALSE, include=FALSE}
 rm(list=ls())
 gc()
 
@@ -37,20 +37,18 @@ tidy_dickens <- book %>% unnest_tokens(word, text) %>%
 
 total_words <- tidy_dickens %>% group_by(Name) %>% summarize(total=sum(n))
 
-bing_sentiments <- get_sentiments("bing")
+bing_sentiments <- get_sentiments("bing") 
 
 ```
 
 
-> **ANALYSIS OF SENTIMENT IN DICKENS - USING THE BING LEXICON**
+> **ANALYSIS OF SENTIMENT IN DICKENS - USING THE BING LEXICON**\
 
-> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible all of them. Is Dickens prone to writing generally negative works?
+> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible all of them. Is Dickens prone to writing generally negative works?\
 
-> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in proportion for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.
+> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in proportion for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.\
 
-
-
-```{r message=TRUE, warning=FALSE, include=TRUE}
+```{r error=FALSE, message=TRUE, warning=FALSE, include=TRUE}
 
 tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name)
 
@@ -64,15 +62,13 @@ tidy_dickens %>%
 
 ```
 
-> It is strongly implied here the conclusion that sad themes are recurrent in the work of Dickens. However, this assertion could be even more strongly substantiated by a chi-square test. 
+> It is strongly implied here the conclusion that sad themes are recurrent in the work of Dickens. However, this assertion could be even more strongly substantiated by a chi-square test. \
 
-```{r message=TRUE, warning=FALSE, include=TRUE}
-# Contingency table
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ct <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
   count(sentiment) %>% pivot_wider(names_from = sentiment, values_from = n) %>%
   column_to_rownames(var = "Name")
 
-# Chi-sq test 
 chSq <- chisq.test(ct)
 chSq
 
@@ -81,13 +77,48 @@ chSq$expected
 chSq$stdres
 
 afinn_sentiments <- get_sentiments("afinn")
-
 ```
 
-> The Chi-Squared test identifies a p-value of `r chSq$p.value`, meaning that there is no level of significance here from a more numerical standpoint. With this lack of significance in mind, it can be concluded, therefore, that it is a typicality in Dickens to write generally negative pieces. What a sad individual he was!
+> The Chi-Squared test identifies a p-value of `r chSq$p.value`, meaning that there is no level of significance here from a more numerical standpoint. With this lack of significance in mind, it can be concluded, therefore, that it is a typicality in Dickens to write generally negative pieces. What a sad individual he was!\
 
 > **ANALYSIS OF SENTIMENT IN DICKENS - USING THE AFINN LEXICON**
 
-> Similarly to the Bing lexicon, the AFINN lexicon is used to evaluate the sentiment of a variety of words. In this case, the AFINN lexicon includes `r nrow(afinn_sentiments)` words from the English language. The key difference though is that rather than sorting individual words into different categories, AFINN instead assigns each included word an integer between -5 (most negative) and 5 (most positive). This is helpful in allowing us to understand the weight of a word's sentiment. In other words, in addition to showing that a word is negative or positive, it also helps us understand how negative or how positive a word is.
+> Similarly to the Bing lexicon, the AFINN lexicon is used to evaluate the sentiment of a variety of words. In this case, the AFINN lexicon includes `r nrow(afinn_sentiments)` words from the English language. The key difference though is that rather than sorting individual words into different categories, AFINN instead assigns each included word an integer between -5 (most negative) and 5 (most positive). This is helpful in allowing us to understand the weight of a word's sentiment. In other words, in addition to showing that a word is negative or positive, it also helps us understand how negative or how positive a word is.\
 
-> Here, we apply the AFINN lexicon to our dataframe consisting of 
+> Here, we apply the AFINN lexicon to our dataframe consisting of all words from the selected work of Dickens, to better conceptualize the weight of the sentiment, in supplement to the overall sentiment implied in the previous analysis.\
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+tidy_dickens_afinn <- tidy_dickens %>%
+  inner_join(afinn_sentiments) %>% inner_join(bing_sentiments)
+
+tidy_dickens_afinn %>% group_by(Name) %>% 
+  summarize(value = mean(value))
+
+tidy_dickens_afinn %>% ggplot(aes(Name, value)) + geom_violin()
+
+new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
+  count(sentiment) %>% pivot_wider(names_from = sentiment, values_from = n) %>%
+  column_to_rownames(var = "Name")
+
+```
+
+> It can be seen here that denser populations of words with negative connotations are present, particularly around -2. It can be seen that "Oliver Twist" and "Our Mutual Friend" both seem to contain exceptionally negative words with a sentiment of -5, the maximum negative value, whereas the latter works do not contain such words. "Hard Times" and "The Pickwick Papers" are the only works that evidently contain no words that equate to the maximum positive sentiment of 5, which is accomplished by the latter works. Generally, positive words have a sentiment around 2. \
+
+> To give numerial insight, we once again conduct a Chi-Squared test to allow for better comprehension of the above graph. \
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
+  count(sentiment) %>% pivot_wider(names_from = sentiment, values_from = n) %>%
+  column_to_rownames(var = "Name")
+
+
+chSq2 <- chisq.test(new_ct)
+chSq2
+
+chSq2$observed
+chSq2$expected
+chSq2$stdres
+
+```
+
+> Note the high p-value of `r chSq$p.value`, which is immediately indicative that, at the very least in the context of this sample size, there is absolutely no phenomenon event happening. \
