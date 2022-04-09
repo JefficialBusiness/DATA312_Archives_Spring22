@@ -4,12 +4,12 @@ output:
   
 title: "Homework 2C - DATA-312"
 author: "Jeffrey Williams"
-abstract: "This writeup explores the "
+abstract: "This writeup explores a sample of 6 works from author Charles Dickens with the objective of better understanding sentiment patterns, word commonalities, and the potential implications of such. In each book, who are the main characters, and what are the main themes? Perhaps, what kind of a mood did Charles Dickens typically have, based on the sentiment trends in his writing?"
 date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
 
-```{r echo=FALSE, error=FALSE, message=TRUE, warning=FALSE, include=FALSE}
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 rm(list=ls())
 gc()
 
@@ -46,13 +46,22 @@ bing_sentiments <- get_sentiments("bing")
 ```
 
 
+> **WORK OF CHARLES DICKENS INCLUDED IN SAMPLE**
+
+> 1. Oliver Twist\
+> 2. David Copperfield\
+> 3. Hard Times\
+> 4. Bleak House\
+> 5. Our Mutual Friend\
+> 6. The Pickwick Papers\
+
 > **ANALYSIS OF SENTIMENT IN DICKENS - USING THE BING LEXICON**
 
-> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible all of them. Is Dickens prone to writing generally negative works? A little more far-reaching, but can one imply the typicalities in his perspective and mood? What follows is an effort to arrive at more clear answers to such questions.
+> The Bing lexicon consists of `r nrow(bing_sentiments)` words, sorted into two categories, negative and positive, based on their perceived connotations. Such a lexicon was applied to the dataframe of the select works of Dickens in an effort to begin to understand the balance of sentiment (or lack thereof) thematic in his work, both in terms of individual works and, if possible, all of them. Is Dickens prone to writing generally negative works? A little more far-reaching, but can one imply the typicalities in his perspective and mood? What follows is an effort to arrive at more clear answers to such questions.
 
-> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in proportion for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.
+> Bearing in mind the nature of Dickens as a serial novelist, which explains the similarities in word count for most of the works evaluated, it is obvious that there is a signifant overbearing of negative sentiment over positive. For each individual work, the count of words aligning with a negative sentiment per the Bing lexicon are significantly higher than words that are classified as negative.
 
-```{r echo=FALSE, error=FALSE, message=TRUE, warning=FALSE, include=TRUE}
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
 
 tidy_dickens <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name)
 
@@ -66,7 +75,7 @@ tidy_dickens %>%
 
 ```
 
-> It is strongly implied here the conclusion that sad themes are recurrent in the work of Dickens. However, this assertion could be even more strongly substantiated by a chi-square test. \
+> It is strongly implied here the conclusion that sad themes are recurrent in the work of Dickens. However, this assertion could be even more strongly substantiated by a Chi-squared test.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ct <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
@@ -74,24 +83,27 @@ ct <- tidy_dickens %>% inner_join(bing_sentiments) %>% group_by(Name) %>%
   column_to_rownames(var = "Name")
 
 chSq <- chisq.test(ct)
-chSq
-
-chSq$observed
-chSq$expected
-chSq$stdres
 
 afinn_sentiments <- get_sentiments("afinn")
 ```
 
-> The Chi-Squared test identifies a p-value of `r chSq$p.value`, meaning that there is no level of significance here from a more numerical standpoint. With this lack of significance in mind, it can be concluded, therefore, that it is a typicality in Dickens to write generally negative pieces. What a sad individual he was!\
+```{r}
+chSq
+chSq$observed
+chSq$expected
+chSq$stdres
+
+```
+
+> The Chi-squared test identifies a p-value of `r chSq$p.value`, meaning that there is no level of significance here from a more numerical standpoint. With this lack of significance in mind, it can be concluded, therefore, that it is a typicality in Dickens to write generally negative pieces. What a sad individual he was!\
 
 > **ANALYSIS OF SENTIMENT IN DICKENS - USING THE AFINN LEXICON**
 
-> Similarly to the Bing lexicon, the AFINN lexicon is used to evaluate the sentiment of a variety of words. In this case, the AFINN lexicon includes `r nrow(afinn_sentiments)` words from the English language. The key difference though is that rather than sorting individual words into different categories, AFINN instead assigns each included word an integer between -5 (most negative) and 5 (most positive). This is helpful in allowing us to understand the weight of a word's sentiment. In other words, in addition to showing that a word is negative or positive, it also helps us understand how negative or how positive a word is.\
+> Similarly to the Bing lexicon, the AFINN lexicon is used to evaluate the sentiment of a variety of words. In this case, the AFINN lexicon includes `r nrow(afinn_sentiments)` words from the English language. The key difference though is that rather than sorting individual words into different categories, AFINN instead assigns each included word an integer between -5 (most negative) and 5 (most positive). This is helpful in allowing us to understand the weight of a word's sentiment. In other words, in addition to showing that a word is negative or positive, it also helps us understand how negative or how positive a word is.
 
-> Here, we apply the AFINN lexicon to our dataframe consisting of all words from the selected work of Dickens, to better conceptualize the weight of the sentiment, in supplement to the overall sentiment implied in the previous analysis.\
+> Here, we apply the AFINN lexicon to our dataframe consisting of all words from the selected work of Dickens, to better conceptualize the weight of the sentiment, in supplement to the overall sentiment implied in the previous analysis.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE}
 tidy_dickens_afinn <- tidy_dickens %>%
   inner_join(afinn_sentiments) %>% inner_join(bing_sentiments)
 
@@ -106,14 +118,15 @@ new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
 
 ```
 
-> It can be seen here that denser populations of words with negative connotations are present, particularly around -2. It can be seen that "Oliver Twist" and "Our Mutual Friend" both seem to contain exceptionally negative words with a sentiment of -5, the maximum negative value, whereas the latter works do not contain such words. "Hard Times" and "The Pickwick Papers" are the only works that evidently contain no words that equate to the maximum positive sentiment of 5, which is accomplished by the latter works. Generally, positive words have a sentiment around 2. \
+> It can be seen here that denser populations of words with negative connotations are present, particularly around -2. It can be seen that "Oliver Twist" and "Our Mutual Friend" both seem to contain exceptionally negative words with a sentiment of -5, the maximum negative value, whereas the latter works do not contain such words. "Hard Times" and "The Pickwick Papers" are the only works that evidently contain no words that equate to the maximum positive sentiment of 5, which is accomplished by the latter works. Generally, positive words have a sentiment around 2.
 
-> To give numerial insight, we once again conduct a Chi-Squared test to allow for better comprehension of the above graph. \
+> To give numerical insight, we once again conduct a Chi-squared test to allow for better comprehension of the above graph.
 
 ```{r include = FALSE}
-knitr::opts_chunk$set(fig.height = 3.5, fig.width = 3, fig.align = FALSE)
+knitr::opts_chunk$set(fig.height = 4.25, fig.width = FALSE, fig.align = "center")
 
 ```
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
@@ -122,23 +135,28 @@ new_ct <- tidy_dickens_afinn %>% group_by(Name) %>%
 
 
 chSq2 <- chisq.test(new_ct)
-chSq2
+```
 
+```{r}
+chSq2
 chSq2$observed
 chSq2$expected
 chSq2$stdres
 
 ```
 
-> Note the high p-value of `r chSq$p.value`, which is immediately indicative that, at the very least in the context of this sample size, there are no differences between these works of Dickens in terms of sentiment. This is rather consistent with the general uniformity in the "violin" graph above. \
+> Note the high p-value of `r chSq$p.value`, which is immediately indicative that, at the very least in the context of this sample size, there are no differences between these works of Dickens in terms of sentiment. This is rather consistent with the general uniformity in the "violin" graph above.
 
-> Though no clear classification could be found for the genre of these works with respect to sentiment (ex. Tragedy vs. Comedy) in the midst of searching various platforms, it is evident that Dickens' work, particularly the work included in the sample, are likely to be considered tragedies. Moreover, it is inferrable that Dickens is prone to writing tragedies. \
+> Though no clear classification could be found for the genre of these works with respect to sentiment (ex. Tragedy vs. Comedy) in the midst of searching various platforms, it is evident that Dickens' work, particularly the work included in the sample, are likely to be considered tragedies, or at least more broadly declared works of a sad nature. Moreover, it is inferrable that Dickens is prone to writing tragedies. \
 
 > **ANALYSIS OF WORD COMMONALITIES IN DICKENS - WORDCLOUDS**
 
-> The frequencies of words can sometimes be indicative of major themes/characters/sentiment/etc. in a work. Here, we use wordclouds as a means of visualizing the most common words in Dickens' work. \
+> The frequencies of words can sometimes be indicative of major themes/characters/sentiment/etc. in a work. Here, we use wordclouds as a means of visualizing the most common words in Dickens' work.
 
-> Below are a series of wordclouds for each work of Dickens. \
+> Below are a series of wordclouds for each work of Dickens. The order of the wordclouds correspond to the order of the following list.
+
+\pagebreak
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -147,28 +165,41 @@ chSq2$stdres
 # Do let me know if I've made any errors.
 
 for(i in 1:nrow(dickens_list)) {
+  print(dickens_list$Name[i])
   gutenberg_download(dickens_list$`Gutenberg ID`[i],
        mirror = mirror) %>% slice(dickens_list$start[i]:n()) %>% 
     unnest_tokens(word, text) %>% count(gutenberg_id, word, sort = TRUE) %>%
     inner_join(dickens_list, by = c(gutenberg_id = "Gutenberg ID")) %>% 
-    anti_join(stop_words) %>% with(wordcloud(word, n, max.words=100)) 
+    anti_join(stop_words) %>% with(wordcloud(word, n, max.words=50), 
+                                   scale=c(3.5,0.25)) 
 }
 
 ```
 
-> Some observations worth noting are the immediately evident dominance of the names of main characters and elements from the titles of the story. For example, Oliver Twist is well-implied to place emphasis on the main character, Oliver, based on the largest size 
+> Some observations worth noting are the immediately evident dominance of the names of main characters and elements from the titles of the story. For example, "Oliver Twist" is well-implied to place emphasis on the main character, Oliver, based on the large size of that particular word. A similar case is evident for the Boffins family in "Our Mutual Friend" and Samuel Pickwick in "The Pickwick Papers". Upon further investigation in "Bleak House", it is known beforehand that Lady Dedlock is a main character in the novel, explaining, at least in part, the dominance of the word "lady" in that particular cloud. 
 
-> Below is a wordcloud based on the master dataframe containing all words from all work from the sample.
+> It is also suggestable that time bears significance as a theme in "Bleak House", based on the frequency of such a word in that particular cloud.
+
+> It is known that there are several significant characters in "David Copperfield", including Copperfield himself, his mother, his stepfather, Edward Murdstone, and Dora Spenlow, which may explain why words and names in this novel, albeit outstanding, are represented slightly less prominently in its respective wordcloud, opposed to other works.
+
+> CUMULATIVE WORDCLOUD: Below is a wordcloud based on the master dataframe containing all words from all work from the sample.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 tidy_dickens_no_sw %>% with(wordcloud(word, n, max.words=100))
 
 ```
 
-> **ANALYSIS OF WORD COMMONALITIES IN DICKENS - ZIPFS LAW**
+> The significance of looking at individual wordclouds comes to further fruition with this cumulative wordcloud. When creating a wordcloud based on a consolidated list of words across all works in the sample, there is a predominance in character names that significantly outweighs any other potential themes in the works, even though they are occasionally present. This wordcloud is rather effective in conveying to us important characters throughout Dickens' work. On a more secondary level, it is functional in implying recurring themes across all works that may be inferred through the presence of various words.\
+
+> **ANALYSIS OF WORD COMMONALITIES IN DICKENS - ZIPF'S LAW**
+
+> Zipf's law is an empirical law that asserts that the frequency of an object, such as a common word like "the", is inversely related to that object's rank in a sorted list. To better understand word frequencies in Dickens' work, we apply Zipf's law to a custom dataframe containing every word across all of Dickens' work, including stop words, where a column is added which assigns each word their appropriate rank.
+
+> Below is a rank-frequency graph representative of all words in Dickens' work.
+
 
 ```{r include = FALSE}
-knitr::opts_chunk$set(fig.height = FALSE, fig.width = FALSE, fig.align = FALSE)
+knitr::opts_chunk$set(fig.height = 4, fig.width = FALSE, fig.align = FALSE)
 
 ```
 
@@ -179,10 +210,21 @@ words_by_rank <- dickens_words %>% group_by(Name) %>%
 lfit <- lm(log10(frequency) ~ log10(rank), data = words_by_rank)
 
 words_by_rank %>% ggplot(aes(rank, frequency, color = Name)) +
-  geom_line(show.legend = FALSE) + scale_x_log10() + scale_y_log10() +
+  geom_line(show.legend = TRUE) + scale_x_log10() + scale_y_log10() +
   geom_abline(intercept = lfit$coefficients["(Intercept)"],
               slope = lfit$coefficients["log10(rank)"])
 
+```
+
+> Evidently, word usage patterns across all works in the sample modestly comply with Zipf's Law, given the somewhat linear relationship with rank versus frequency. Upon investigation of the table, several outliers can be seen, particularly character names in their respective books.\
+
+> **ANALYSIS OF WORD COMMONALITIES IN DICKENS - tf-idf**
+
+> tf-idf analysis entails "downweighting" common items that are recurring in more than just one dataframe. In this case, we downweight words that are common across all of Dickens' work from the sample, rather than ones that are common in an individual work. To do this, we multiply the frequency of the occurrence of a word in a document, "tf", with the inverse document frequency "idf".
+
+> The objective is to visualize commonalities in word-usage patterns in the context of individual works. The table below portrays the top ten words for each work in the sample on the basis of their frequency.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 dickens_tf_idf <- dickens_words %>% bind_tf_idf(word, Name, n) %>%
   arrange(desc(tf_idf))
 
@@ -191,3 +233,11 @@ dickens_tf_idf %>% group_by(Name) %>% slice_max(tf_idf, n = 10) %>%
   geom_col(show.legend = FALSE) + facet_wrap(~Name, scales = "free")
 
 ```
+
+> It can be seen across all six works that the most frequent words are the names of their respective main characters. 
+
+> In the particular case of "Bleak House", the highest word frequency implies the importance of the surrogate case of _Jarndyce v. Jarndyce_, with the word frequencies of other characters preceding each other down the line by modest margins (i.e. Leicester Dedlock's name is the second most frequent word by a small margin, followed by Ada Clare, and so on). 
+
+> There are more significant margins between the top frequent word and the latter words in works such as "Our Mutual Friend" and "Oliver Twist". Unusually, in "Hard Times" and "The Pickwick Papers", the top frequent word is closely followed by two other words, with the latter words appearing much less frequently, implicative that there is a difference in importance or recurence in groups of characters in these works.
+
+> Another interesting observation is the presence of the words "don't" in "Oliver Twist" and "Hard Times". This appears to be a stop word that was not enough present across all documents, thus was not included in the downweight procedure. Perhaps Dickens' writing patterns occasionally deviated.
