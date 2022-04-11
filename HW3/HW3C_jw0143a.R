@@ -87,7 +87,7 @@ wav_fft %>% slice(seq(1, n(), by = 1000)) %>% ggplot(aes(freq, sample_fft)) +
 
 notes <- c("a", "b", "c", "d", "e" , "f", "g", "a'", "b'", "c'", "d'", "e'", 
            "f'", "g'", "a''", "b''", "c''", "d''", "e''", "f''", "g''")
-
+test
 freqs <- as_music_df(notes)
 
 wav_fft %>% filter(freq < 1000) %>% ggplot(aes(freq, sample_fft)) +
