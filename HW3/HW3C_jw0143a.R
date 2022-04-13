@@ -74,7 +74,7 @@ songs_notes_blocks %>% count(name, length, time_block) %>%
 # Pivoting to analysis of WAV files
 wavfile <- load.wave("lightly_row_violin.wav")
 
-wav <- tibble(sample = wavfile) %>% mutate(time = row_number() / wavfile$rate ) 
+wav <- tibble(sample = wavfile) %>% mutate(time = row_number() / wavfile$rate) 
 
 wav %>% slice(seq(1, n(), by = 100)) %>% ggplot(aes(time, sample)) +
   geom_line() 
@@ -120,4 +120,24 @@ wav_stft_tidy %>% filter(frequency > 256, frequency < 500) %>%
 # "Unravel": Opening from another anime I watched, Tokyo Ghoul
 # 
 
-unravel <- read_midi("unravel_tokyo_ghoul.midi")
+unravel <- read_midi("unravel_tokyo_ghoul.mid")
+traitor_requiem <- read_midi("Traitors Requiem (Theishter).midi")
+
+my_songs <- bind_rows(mutate(unravel, name = 'unravel'),
+                   mutate(traitor_requiem, name = 'traitor_requiem'))
+
+my_songs_notes <- my_songs %>% filter(!is.na(pitch)) %>%
+  mutate(as_music_df(pitch), end_time = time + length)
+
+my_songs_lengths <- my_songs_notes %>% group_by(name) %>%
+  summarize(total_time = max(end_time))
+
+my_songs_notes %>% group_by(name) %>% summarize(max(freq))
+
+my_songs_notes <- my_songs_notes %>% inner_join(song_lengths)
+
+new_time_blocks <- 10
+
+my_songs_notes_blocks <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
+  mutate(time_block = floor(new_time_blocks * time / total_time))
+         
