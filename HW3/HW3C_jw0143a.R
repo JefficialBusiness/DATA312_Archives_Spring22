@@ -40,7 +40,7 @@ songs_notes %>% group_by(name) %>% summarize(max(velocity))
 songs_notes <- songs_notes %>% inner_join(song_lengths)
 
 # Dividing notes by time for various analysis
-time_blocks <- 10
+time_blocks <- 30
 
 songs_notes_blocks <- songs_notes %>% 
   mutate(time_block = floor(time_blocks * time/total_time))
@@ -134,10 +134,36 @@ my_songs_lengths <- my_songs_notes %>% group_by(name) %>%
 
 my_songs_notes %>% group_by(name) %>% summarize(max(freq))
 
-my_songs_notes <- my_songs_notes %>% inner_join(song_lengths)
+my_songs_notes <- my_songs_notes %>% inner_join(my_songs_lengths)
 
-new_time_blocks <- 10
+new_time_blocks <- 40
 
 my_songs_notes_blocks <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
   mutate(time_block = floor(new_time_blocks * time / total_time))
-         
+
+my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
+  pivot_wider(names_from = name, values_from = n)
+
+my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  ggplot(aes(xmin = time, xmax = end_time, y = freq, color = channel)) + 
+  geom_linerange()
+
+my_songs_notes_blocks %>% count(name, note, time_block) %>%
+  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
+  facet_wrap(~note)
+
+my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  count(name, note, time_block) %>%
+  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
+  facet_wrap(~note)
+
+# Normalizing 
+my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  add_count(name, time_block, name = 'notes_per_block') %>% 
+  add_count(note, time_block) %>%
+  ggplot(aes(time_block, n / notes_per_block, group = note)) +
+  geom_line() + facet_wrap(~note)
+
+my_songs_notes_blocks %>% count(name, length, time_block) %>%
+  ggplot(aes(time_block, n, color = name)) + geom_point()
+
