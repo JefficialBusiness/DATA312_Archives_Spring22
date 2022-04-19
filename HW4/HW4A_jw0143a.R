@@ -122,6 +122,7 @@ my_training %>% filter(t == 1) %>% ggplot(aes(x, y)) + geom_point()
 
 my_training %>% filter(Group == 'H') %>% chisq.test()
 
+# Modeling Problem 1:
 # I have chosen Group H, particularly as t = 0, as there appears to be a
 # considerable corerlation in the points that generally decreases. At this
 # juncture, I am envisioning a linear regression model suiting this quite
@@ -145,4 +146,10 @@ my_training_H_polyfit <- my_training_H %>%
 
 my_training_H_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
   geom_line(aes(x,my_polyfit_y), color='green')
+
+# Modeling Problem 2:
+# I have chosen the relationship between y and x for Group 'F', as there appears
+# to be a rather strong relationship between x and y, in addition to the 
+# outlying characteristic that it protrudes rather fiercely from the plots
+# of the latter groups.
 
