@@ -112,13 +112,37 @@ my_training %>% count(Group) %>% select(n) %>% chisq.test()
 my_training %>% ggplot(aes(x, y, color = Group)) + geom_point() +
   facet_grid(vars(s), vars(t))
 
-my_training %>% filter(Group == 'F') %>% 
+my_training %>% filter(Group == 'H') %>% 
   ggplot(aes(x, y, color = Group)) + geom_point() +
   facet_grid(vars(s), vars(t))
 
-my_training %>% filter(Group == 'F') %>% ggplot(aes(x, y)) + geom_point()
+my_training %>% filter(Group == 'H') %>% ggplot(aes(y, x)) + geom_point()
 
 my_training %>% filter(t == 1) %>% ggplot(aes(x, y)) + geom_point()
 
-# I have chosen Group F, as it looks rather outlying. Immensely apparent is a 
-# long and narrow series of plots jutting out to the right.
+my_training %>% filter(Group == 'H') %>% chisq.test()
+
+# I have chosen Group H, particularly as t = 0, as there appears to be a
+# considerable corerlation in the points that generally decreases. At this
+# juncture, I am envisioning a linear regression model suiting this quite
+# well.
+
+my_training_H <- my_training %>% filter(Group == 'H')
+
+my_lfit <- lm(y~x, data = my_training_H)
+
+my_polyfit <- lm(y~poly(x, 2), my_training_H)
+
+my_training_H_lfit <- my_training_H %>% 
+  add_predictions(my_lfit, var = 'my_lfit_y')
+
+my_training_H_lfit %>% ggplot() + geom_point(aes(y, x)) + 
+  geom_line(aes(my_lfit_y, x), color = 'blue')
+
+my_training_H_polyfit <- my_training_H %>%
+  add_predictions(my_polyfit, var = 'my_polyfit_y') %>%
+  add_residuals(my_polyfit, var = 'my_polyfit_residuals')
+
+my_training_H_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
+  geom_line(aes(x,my_polyfit_y), color='green')
+
