@@ -118,15 +118,14 @@ wav_stft_tidy %>% filter(frequency > 256, frequency < 500) %>%
 # The MIDI files I have selected are as follows:
 
 # "Unravel": Opening from anime, Tokyo Ghoul
-# "Traitor's Requiem": Second opening from anime, JoJo's Bizarre Adventure:
-# Vento Aureo
+# Source: https://musescore.com/kevintran99/scores/5490570
+# "Gurenge": Opening from anime, Kimetsu No Yaiba (Demon Slayer)
+# Source: https://sheet.host/sheet/V8Wzoq
 
 unravel <- read_midi("unravel_tokyo_ghoul.mid")
-traitor_requiem <- read_midi("Traitors Requiem (Theishter).midi")
 gurenge <- read_midi("Gurenge_full.mid")
 
 my_songs <- bind_rows(mutate(unravel, name = 'unravel'),
-                   mutate(traitor_requiem, name = 'traitor_requiem'),
                    mutate(gurenge, name = 'gurenge'))
 
 my_songs_notes <- my_songs %>% filter(!is.na(pitch)) %>%
@@ -142,12 +141,12 @@ my_total_notes
 my_songs_lengths
 
 # From above table: "Unravel" contains 3630 notes and has length of 251645; 
-# "Traitor's Requiem" contains 1772 notes and has length of 221760.
+# "Gurenge" contains 3008 notes and has length of 249599.
 
 my_songs_notes <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
   inner_join(my_total_notes)
 
-new_time_blocks <- 20
+new_time_blocks <- 100
 
 my_songs_notes_blocks <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
   mutate(time_block = floor(new_time_blocks * time / total_time))
@@ -162,22 +161,55 @@ my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
 # particularly by the major jumps in note counts from blocks 0 to 1, 2 to 3,
 # 5 to 6, and 8 to 9.
 
+# In "Gurenge", the table implies several major differences in note appearance
+# frequencies, particularly between blocks 2 and 3, 5 and 6, 6 and 7, 7 and 8.
+
 # Using 20 time blocks:
 
 # "Unravel" shows several major changes, particularly from 0 to 1, 1 to 2, 9
 # to 10, 17 to 18.
 
-# With this number of time blocks, "Traitor's Requiem" shows more subtle changes
-# in note counts.
+# With this number of time blocks, Gurenge continues to demonstrate significant
+# difference, particularly between 0 to 1, 1 to 2, 4 to 5, 8 to 9, 11 to 12, 12
+# to 13, etc.
 
 # Using 50 time blocks:
 
+# Relatively significant differences in note occurrence remain evident for both
+# pieces. There are instances where note counts per time block roughly double
+# similarly to the previous experiment (20), albeit by smaller margins due to
+# less notes per time block.
+
 # Using 100 time blocks:
+
+# With even smaller note counts per time block, the differences become even
+# smaller, however there remain few significant jumps (for example, between
+# blocks 5 and 6 for "Gurenge" and 3 and 4 for "Unravel".)
 
 
 my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
   ggplot(aes(xmin = time, xmax = end_time, y = freq, color = channel)) + 
   geom_linerange()
+
+# Attempt at visualizing potential structural changes
+
+my_songs_notes_blocks %>% filter(name == 'gurenge') %>% 
+  ggplot(aes(xmin = time, xmax = end_time, y = freq, color = channel)) + 
+  geom_linerange()
+
+my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  ggplot(aes(xmin = time, xmax = end_time, y = freq, color = channel)) + 
+  geom_linerange()
+
+my_songs_notes_blocks %>% filter(name == 'gurenge') %>% 
+  count(name, note, time_block) %>%
+  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line()
+
+my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  count(name, note, time_block) %>%
+  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line()
+
+# Checking note usage
 
 my_songs_notes_blocks %>% count(name, note, time_block) %>%
   ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
@@ -201,37 +233,49 @@ my_songs_notes_blocks %>% filter(name == 'unravel') %>%
   ggplot(aes(time_block, n / notes_per_block, group = note)) +
   geom_line() + facet_wrap(~note)
 
-my_songs_notes_blocks %>% filter(name == 'traitor_requiem') %>% 
+my_songs_notes_blocks %>% filter(name == 'gurenge') %>% 
   add_count(name, time_block, name = 'notes_per_block') %>% 
   add_count(note, time_block) %>%
   ggplot(aes(time_block, n / notes_per_block, group = note)) +
   geom_line() + facet_wrap(~note)
 
 
-
 # Observations: It appears in "Unravel" that note length is roughly even with
-# a few spikes after trying with several note block counts, including 10, 20,
-# and 50.
+# a few spikes after trying with 10 note block counts. b appears to be a very
+# commonly used note, alongside d, f, and g. d becomes more frequently used 
+# with f throughout the progression of the song, according to the first test.
 
-# In "Traitor's Requiem", it appears at 10 and 20 note block counts that a_
-# regresses in usage throughout the progression of the piece while e 
-# increases in use significantly. The latter notes remain the same.
+# At 50 time blocks, all notes appear to be even more even in usage, with the
+# most apparent dips and rises belonging to notes b_, d, f, and g.
 
-# However, when increasing the note block count to 50, a_'s usage appears more
-# consitent throughout the piece with one dip in the middle (circa block 25).
-# e's usage is still portrayed as increasing as the piece progresses.
+# At 100 time blocks, all notes generally appear even in usage, however b_
+# appears to experience a dip midway and gradually increase in usage from there
+# to the end of the piece. As with f, it appears that there is one point where
+# it is used the most frequently.
 
-# Such a case remains when switching the note blocks frequency to 100, however,
-# it is evident that e's increase in frequency occurs closer to the end of the
-# piece, while usage remains generally consistent throughout most of it. It can
-# also be seen rather subtle decreases in frequency for notes g, g_, and perhaps
-# e_.
+# In "Gurenge", note usage appears quite con consistent at 10 time blocks, with
+# e showing the most interesting behavior, starting at at a high point and
+# ending at a high point.
+
+# At 10 time blocks, note usage appears even more evened out. d and e
+# appear to be used the most commonly, and perhaps b as well. It appears
+# that e_ is not used until roughly the middle of the song, interestingly.
+
+# At 50 time blocks, with the exception of a few spikes, most notably for
+# e, note usage appears rather even.
+
+# At 100 time blocks, note usage appears even for most notes. d appears to
+# be more frequently used at around roughly the third quarter of the piece,as
+# does e. Interestingly, there is little "action" in the line representing e_,
+# even at this number of time blocks. There are several long and straight
+# sections in the line.
 
 # Checking for tempo change
 my_songs_notes_blocks %>% count(name, length, time_block) %>%
   ggplot(aes(time_block, n, color = name)) + geom_point()
 
-# When playing the files in GarageBand, it is indicated that there is a tempo
-# change right after what would be the "opening" verse in the original song.
-# Particularly it rises from 137 to 140, and fluctuates throughout. There is a 
-# rather sporadic 
+# Note: I am not confident that I know how to read this graph, so I'd like to
+# discuss it briefly at some point. My best guess by reading this graph is that
+# there is a considerable amount of variance in note length for both songs, so
+# there are tempo changes on occasion. I strongly suspect this as someone
+# familiar with both songs; there are several "slow" and "fast" moments.
