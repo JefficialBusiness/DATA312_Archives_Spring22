@@ -120,32 +120,42 @@ my_training %>% filter(Group == 'H') %>% ggplot(aes(y, x)) + geom_point()
 
 my_training %>% filter(t == 1) %>% ggplot(aes(x, y)) + geom_point()
 
-my_training %>% filter(Group == 'H') %>% chisq.test()
-
 # Modeling Problem 1:
 # I have chosen Group H, particularly as t = 0, as there appears to be a
 # considerable corerlation in the points that generally decreases. At this
 # juncture, I am envisioning a linear regression model suiting this quite
 # well.
 
-my_training_H <- my_training %>% filter(Group == 'H')
+my_tH <- my_training %>% filter(Group == 'H')
 
-my_lfit <- lm(y~x, data = my_training_H)
+H_lfit <- lm(y~x, data = my_tH)
 
-my_polyfit <- lm(y~poly(x, 2), my_training_H)
+H_polyfit <- lm(y~poly(x, 2), my_tH)
 
-my_training_H_lfit <- my_training_H %>% 
-  add_predictions(my_lfit, var = 'my_lfit_y')
+tH_lfit <- my_tH %>% 
+  add_predictions(H_lfit, var = 'H_lfit_y') %>%
+  add_residuals(H_lfit, var = 'H_lfit_resid')
 
-my_training_H_lfit %>% ggplot() + geom_point(aes(y, x)) + 
-  geom_line(aes(my_lfit_y, x), color = 'blue')
+tH_lfit %>% ggplot() + geom_point(aes(y, x)) + 
+  geom_line(aes(H_lfit_y, x), color = 'blue')
 
-my_training_H_polyfit <- my_training_H %>%
-  add_predictions(my_polyfit, var = 'my_polyfit_y') %>%
-  add_residuals(my_polyfit, var = 'my_polyfit_residuals')
+tH_polyfit <- my_tH %>%
+  add_predictions(H_polyfit, var = 'H_polyfit_y') %>%
+  add_residuals(H_polyfit, var = 'H_polyfit_resid')
 
-my_training_H_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
-  geom_line(aes(x,my_polyfit_y), color='green')
+tH_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
+  geom_line(aes(x, H_polyfit_y), color='green')
+
+my_qH <- my_query %>%
+  filter(Group == 'H') %>%
+  add_residuals(H_lfit, var='H_lfit_resid') %>%
+  add_predictions(H_lfit, var='H_lfit_pred') %>%
+  add_residuals(H_polyfit,var='H_polyfit_resid') %>%
+  add_predictions(H_polyfit,var='H_polyfit_pred')
+
+my_qH %>% ggplot() + geom_point(aes(x, y)) + 
+  geom_line(aes(x, H_polyfit_pred), color = 'red') +
+  geom_line(aes(x, H_lfit_pred), color = 'blue')
 
 # Modeling Problem 2:
 # I have chosen the relationship between y and x for Group 'F', as there appears
@@ -153,3 +163,33 @@ my_training_H_polyfit %>% ggplot() + geom_point(aes(x, y)) +
 # outlying characteristic that it protrudes rather fiercely from the plots
 # of the latter groups.
 
+my_tF <- my_training %>% filter(Group == 'F')
+
+F_lfit <- lm(y~x, data = my_tF)
+
+F_polyfit <- lm(y~poly(x, 2), my_tF)
+
+tF_lfit <- my_tF %>% 
+  add_predictions(F_lfit, var = 'F_lfit_y') %>%
+  add_residuals(F_lfit, var = 'F_lfit_resid')
+
+tF_lfit %>% ggplot() + geom_point(aes(x, y)) + 
+  geom_line(aes(x, F_lfit_y), color = 'blue')
+
+tF_polyfit <- my_tF %>%
+  add_predictions(F_polyfit, var = 'F_polyfit_y') %>%
+  add_residuals(F_polyfit, var = 'F_polyfit_resid')
+
+tF_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
+  geom_line(aes(x, F_polyfit_y), color='green')
+
+my_qF <- my_query %>%
+  filter(Group == 'F') %>%
+  add_residuals(F_lfit, var='F_lfit_resid') %>%
+  add_predictions(F_lfit, var='F_lfit_pred') %>%
+  add_residuals(F_polyfit,var='F_polyfit_resid') %>%
+  add_predictions(F_polyfit,var='F_polyfit_pred')
+
+my_qF %>% ggplot() + geom_point(aes(x, y)) + 
+  geom_line(aes(x, F_polyfit_pred), color = 'red') +
+  geom_line(aes(x, F_lfit_pred), color = 'blue')
