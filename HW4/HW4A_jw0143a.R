@@ -125,10 +125,11 @@ my_training %>% filter(Group == 'H') %>% ggplot(aes(y, x)) + geom_point()
 my_training %>% filter(t == 1) %>% ggplot(aes(x, y)) + geom_point()
 
 # Modeling Problem 1:
-# I have chosen Group H, particularly as t = 0, as there appears to be a
-# considerable corerlation in the points that generally decreases. At this
-# juncture, I am envisioning a linear regression model suiting this quite
-# well.
+# In this modeling problem, I will be looking strictly at the 'Group' value, H.
+# I will be considering x to be the response variable, wish respect to y
+# (quantitative explanatory variable) and Group H (categorical explanatory
+# variable). Two candidates I am considering are a linear model as well as
+# a polynomial model, which I am more strongly considering.
 
 my_tH <- my_training %>% filter(Group == 'H')
 
@@ -162,39 +163,13 @@ my_qH %>% ggplot() + geom_point(aes(x, y)) +
   geom_line(aes(x, H_lfit_pred), color = 'blue')
 
 # Modeling Problem 2:
-# I have chosen the relationship between y and x for Group 'F', as there appears
-# to be a rather strong relationship between x and y, in addition to the 
-# outlying characteristic that it protrudes rather fiercely from the plots
-# of the latter groups.
+# In this modeling problem, my main focus will be on variable 't', with respect
+# to certain values within the 'Group' category. It appears quite evident that
+# there is a strong mutual dependency, such that there is a strong difference in
+# how frequently values within each 'Group' occur when t = 0 versus when t = 1.
+# Plotting this, particularly using a facet plot, demonstrates this effectively.
+# Observe that for certain 'Group' variables, like G and H, their respective
+# values are less frequent (or nearly nonexistent) for a particular value of t,
+# while subtler differences are evident for F and I.
 
-my_tF <- my_training %>% filter(Group == 'F')
-
-F_lfit <- lm(y~x, data = my_tF)
-
-F_polyfit <- lm(y~poly(x, 2), my_tF)
-
-tF_lfit <- my_tF %>% 
-  add_predictions(F_lfit, var = 'F_lfit_y') %>%
-  add_residuals(F_lfit, var = 'F_lfit_resid')
-
-tF_lfit %>% ggplot() + geom_point(aes(x, y)) + 
-  geom_line(aes(x, F_lfit_y), color = 'blue')
-
-tF_polyfit <- my_tF %>%
-  add_predictions(F_polyfit, var = 'F_polyfit_y') %>%
-  add_residuals(F_polyfit, var = 'F_polyfit_resid')
-
-tF_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
-  geom_line(aes(x, F_polyfit_y), color='green')
-
-my_qF <- my_query %>%
-  filter(Group == 'F') %>%
-  add_residuals(F_lfit, var='F_lfit_resid') %>%
-  add_predictions(F_lfit, var='F_lfit_pred') %>%
-  add_residuals(F_polyfit,var='F_polyfit_resid') %>%
-  add_predictions(F_polyfit,var='F_polyfit_pred')
-
-my_qF %>% ggplot() + geom_point(aes(x, y)) + 
-  geom_line(aes(x, F_polyfit_pred), color = 'red') +
-  geom_line(aes(x, F_lfit_pred), color = 'blue')
-
+my_training_kmeans <- my_training %>% kmeans(4)
