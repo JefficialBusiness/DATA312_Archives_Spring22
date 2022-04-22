@@ -107,6 +107,10 @@ my_training %>% filter(t == 1) %>% ggplot(aes(x, y)) + geom_point()
 
 my_training %>% filter(t == 0) %>% ggplot(aes(x, y)) + geom_point()
 
+my_training %>% count(Group, t) %>% 
+  pivot_wider(names_from = t, values_from = n) %>%
+  column_to_rownames('Group') %>% chisq.test()
+
 my_training %>% count(Group) %>% select(n) %>% chisq.test()
 
 my_training %>% ggplot(aes(x, y, color = Group)) + geom_point() +
@@ -193,3 +197,4 @@ my_qF <- my_query %>%
 my_qF %>% ggplot() + geom_point(aes(x, y)) + 
   geom_line(aes(x, F_polyfit_pred), color = 'red') +
   geom_line(aes(x, F_lfit_pred), color = 'blue')
+
