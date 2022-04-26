@@ -151,7 +151,7 @@ edwin_improv_harmony %>% select(pitch) %>%
 # one of my favorite anime, The Quintessential Quintuplets.
 # The second file is a version of Queen's "Bohemian Rhapsody"
 
-bohemian <- read_midi('Queen - "Bohemian Rhapsody".midi')
+bohemian <- read_midi('Queen - Bohemian Rhapsody.midi')
 gotoubun <- read_midi('gotoubun_no_kimochi.midi')
 
 # Observations: Both ""Bohemian Rhapsody"" and "Gotoubun no Kimochi" contain
@@ -169,6 +169,22 @@ gotoubun <- read_midi('gotoubun_no_kimochi.midi')
 
 my_songs <- bind_rows(mutate(bohemian, name = 'bohemian'),
                    mutate(gotoubun, name = 'gotoubun'))
+
+# Explorative Analysis
+my_songs %>% group_by(name) %>% count(event) %>% 
+  pivot_wider(names_from = name, values_from = n)
+
+my_songs %>% group_by(name) %>% count(channel) %>% 
+  pivot_wider(names_from = name, values_from = n)
+
+my_songs %>% group_by(name) %>% count(track) %>% 
+  pivot_wider(names_from = name, values_from = n)
+
+my_songs %>% group_by(name) %>% count(velocity) %>% 
+  pivot_wider(names_from = name, values_from = n)
+
+my_songs %>% group_by(name) %>% count(type) %>% 
+  pivot_wider(names_from = name, values_from = n)
 
 # Note length distribution analysis
 my_songs %>% group_by(name) %>% ggplot(aes(x = name, y = length)) +

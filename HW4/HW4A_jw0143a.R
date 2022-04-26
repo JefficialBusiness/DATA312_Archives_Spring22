@@ -151,6 +151,14 @@ tH_polyfit <- my_tH %>%
 tH_polyfit %>% ggplot() + geom_point(aes(x, y)) + 
   geom_line(aes(x, H_polyfit_y), color='green')
 
+# Selection - Looking at Residuals
+tH_lfit %>% ggplot(aes(H_lfit_resid)) + geom_histogram()
+tH_polyfit %>% ggplot(aes(H_polyfit_resid)) + geom_histogram()
+
+tH_lfit %>% summarize(mean = mean(H_lfit_resid), sd = sd(H_lfit_resid))
+tH_polyfit %>% summarize(mean = mean(H_polyfit_resid), sd = sd(H_polyfit_resid))
+
+
 my_qH <- my_query %>%
   filter(Group == 'H') %>%
   add_residuals(H_lfit, var='H_lfit_resid') %>%
@@ -160,7 +168,9 @@ my_qH <- my_query %>%
 
 my_qH %>% ggplot() + geom_point(aes(x, y)) + 
   geom_line(aes(x, H_polyfit_pred), color = 'red') +
-  geom_line(aes(x, H_lfit_pred), color = 'blue')
+  geom_line(aes(x, H_lfit_pred), color = 'blue') + 
+  geom_point(aes(x, H_lfit_resid), color = 'orange') +
+  geom_point(aes(x, H_polyfit_resid), color = 'green')
 
 # Modeling Problem 2:
 # In this modeling problem, my main focus will be on variable 't', with respect
@@ -172,4 +182,8 @@ my_qH %>% ggplot() + geom_point(aes(x, y)) +
 # values are less frequent (or nearly nonexistent) for a particular value of t,
 # while subtler differences are evident for F and I.
 
-my_training_kmeans <- my_training %>% kmeans(4)
+my_training_kmeans <- my_training %>% select(-Group) %>% kmeans(4)
+
+my_training_kmeans %>% 
+  add_predictions(my_training_kmeans, var = 'training_kmeans')
+  

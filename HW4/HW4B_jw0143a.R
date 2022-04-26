@@ -8,9 +8,12 @@ rm(list = ls())
 gc()
 
 library(tidyverse)
+library(dplyr)
 library(e1071)
 
 data("spam", package = 'kernlab')
+
+View(spam)
 
 raw_data_samplingframe <- spam %>% select(-george, -num650) %>% 
   mutate(snum = sample.int(n(), n()) / n())
@@ -134,3 +137,5 @@ test_results3 %>% mutate(accuracy = (tp + tn) / (tp + tn + fp + fn),
                           f1 = (2 * tp) / (2 * tp + fp + fn))
 
 # Using my dataset
+data('storms')
+
