@@ -137,10 +137,13 @@ my_training %>% filter(t == 1) %>% ggplot(aes(x, y)) + geom_point()
 # either equivalent to that cutoff point or higher, hence my decision to invert
 # the axes, such that y values are portrayed on the x axis, and x values are
 # portrayed on the y axis (x is the dependent variable and y is the explanatory
-# variable alongside `Group` = B.
+# variable alongside `Group` = B. Using the original orientation may not be
+# ideal, as it would mean that I am predicting values past an apparent cutoff 
+# line.
 
 # By first impressions, I suspect that linear regression can be a workable 
-# option given the pattern of this data, that may fit it somewhat well.
+# option given the pattern of this data, that may fit it somewhat well. The data
+# seems to be steadily decreasing, so it might make some sense.
 
 my_trH <- my_training %>% filter(Group == 'H')
 
@@ -156,14 +159,17 @@ trH_lfit <- my_trH %>%
 trH_lfit %>% ggplot() + geom_point(aes(y, x)) + 
   geom_line(aes(trH_lfit_y, x), color = 'blue')
 
-# It appears there is a cutoff for the values at y = 0. There are few (or no)
+# We can see the cutoff for the values at y = 0. There are few (or no)
 # values in the data for y < 0. That being said, a linear fit looks to "work"
 # rather roughly, but these cutoff are not well accommodated by this model.
 # The line would need to be truncated to start only at y = 0. With that aside,
 # the line might not fare well in the long run, as it appears to peel away from
 # the data at circa y = 300.
 
-# For my second proposed model, I will be considering a polynomial fit.
+# For my second proposed model, I will be considering a polynomial fit. I
+# suspect this may help with the apparent curve in the line that can now be
+# seen with the linear model peeling away from the data. It may also help
+# accommodate the context of the cutoff.
 
 H_polyfit <- lm(y~poly(x, 2), my_trH)
 
@@ -193,7 +199,7 @@ trH_polyfit %>% ggplot(aes(trH_polyfit_resid, x)) + geom_point()
 # It appears that the best candidate model is a polynomial fit. Admittedly,
 # neither models are the most ideal, with high standard deviations consistent
 # with the data being widely spread out from the mean, but the polyfit has the 
-# lowest of the two (sd = 83.7, versus lfit's sd = 85.8), so the data is closest 
+# lowest of the two (sd = 82.1, versus lfit's sd = 84.3), so the data is closest 
 # to the mean with this model. Histogram plots are rather inconclusive, as are 
 # the dotplots; generally, there are far too many points spread out far from the
 # mean. Neither option is close, but the polyfit is the closest.
@@ -214,12 +220,12 @@ my_qH %>% ggplot(aes(qH_polyfit_resid, x)) + geom_point()
 my_qH %>% summarize(mean = mean(qH_lfit_resid), sd = sd(qH_lfit_resid))
 my_qH %>% summarize(mean = mean(qH_polyfit_resid), sd = sd(qH_polyfit_resid))
 
-# Testing
 # It looks like the polyfit model works best in this case, judging by
 # similarities between results from the testing stage (visually, and in terms of
 # standard residual analysis) so I will proceed to the testing stage with that 
 # alone.
 
+# Testing
 my_tH <- my_test %>% filter(Group == 'H') %>%
   add_residuals(H_polyfit, var='tH_polyfit_resid') %>%
   add_predictions(H_polyfit, var='tH_polyfit_pred')
@@ -229,11 +235,11 @@ my_tH %>% ggplot(aes(tH_polyfit_resid, x)) + geom_point()
 my_tH %>% summarize(mean = mean(tH_polyfit_resid), sd = sd(tH_polyfit_resid))
 
 # Observations: The standard deviation seems to have lowered quite a bit from
-# my results in the training and query sample for the polynomial fit (sd = 78.3
-# compared to 83.2 for query and 83.7 for training). This is not a very good
-# fit, though it may have been more preferable over a linear model. This does
-# not well accommodate the fact that the points are spread out rather liberally,
-# with many points far from the mean given by the line/curve.
+# my results in the training and query sample for the polynomial fit (sd = 79.2
+# compared to 82.1 for query and 87.3 for training). This is not a very good
+# fit, though it may have been more preferable over a linear model. This model
+# does not well accommodate the fact that the points are spread out rather
+# liberally, with many points far from the mean given by the line/curve.
 
 
 # -- Modeling Problem 2 --
@@ -256,6 +262,7 @@ my_trF %>% ggplot(aes(x, y)) + geom_point()
 # Alternatively, I propose a polynomial fit model; I suspect an extremely subtle
 # curve in the plot which may be better accommodated by such a model.
 
+# Trying lfit
 F_lfit <- lm(y~x, data = my_trF)
 
 F_polyfit <- lm(y~poly(x, 2), my_trF)
@@ -272,6 +279,7 @@ trF_lfit %>% ggplot() + geom_point(aes(x,y)) +
 # smaller discrepancies, but begins to depart rather quickly at roughly
 # x = 60-65.
 
+# Trying polyfit
 trF_polyfit <- my_trF %>%
   add_predictions(F_polyfit, var = 'trF_polyfit_y') %>%
   add_residuals(F_polyfit, var = 'trF_polyfit_resid')
@@ -296,7 +304,7 @@ trF_lfit %>% ggplot(aes(x, trF_lfit_resid)) + geom_point()
 trF_polyfit %>% ggplot(aes(x, trF_polyfit_resid)) + geom_point()
 
 # Analysis: From plotting the residuals as histograms, it can be seen that there 
-# is a much more equal distribution for the polyfit model, while the lfit model 
+# is a much more normal distribution for the polyfit model, while the lfit model 
 # shows a leftward skew on the histogram. Moreover, the standard deviation for 
 # the polyfit is over 0.100 smaller than the standard deviation for the lfit 
 # model. Plotting the residuals as points show a hump-like shape for the lfit
@@ -340,4 +348,6 @@ my_tF %>% summarize(mean = mean(tF_polyfit_resid), sd = sd(tF_polyfit_resid))
 # Observations: The standard deviation remains lower for the polyfit model
 # by similar margins as with the earlier samples. The polyfit model seems to
 # be an okay fit, and seems to work better than the linear model. The
-# variability is rather low in general, but it is there.
+# variability is rather low in general, especially in stark comparison to the
+# previous problem with Group `H`, but there is definitely deviation from the
+# mean / line.
