@@ -172,4 +172,23 @@ med_pca <- my_tr_input %>% prcomp()
 med_pca$x %>% as_tibble %>% mutate(type = my_tr_truth) %>%
   ggplot(aes(PC1, PC2, color = type)) + geom_point()
 
+# Trying SVM training
+my_linear <- svm(Acceptance~., data = my_training, kernel = 'linear')
 
+my_linear <- my_tr_input %>% svm(y = my_tr_truth, kernel = 'linear')
+
+my_poly <- svm(Acceptance~., data = my_training, kernel = 'polynomial')
+my_radial <- svm(Acceptance~., data = my_training, kernel = 'radial')
+my_sigmoid <- svm(Acceptance~., data = my_training, kernel = 'sigmoid')
+
+my_tr_pca <- med_pca$x %>% as_tibble() %>% mutate(type = my_tr_truth)
+
+my_sl <- svm(type~., data = my_tr_pca, kernel = 'linear')
+my_sp <- svm(type~., data = my_tr_pca, kernel = 'polynomial')
+my_sr <- svm(type~., data = my_tr_pca, kernel = 'radial')
+my_ss <- svm(type~., data = my_tr_pca, kernel = 'sigmoid')
+
+plot(my_sl, my_tr_pca, PC1~PC2)
+plot(my_sp, my_tr_pca, PC1~PC2)
+plot(my_sr, my_tr_pca, PC1~PC2)
+plot(my_ss, my_tr_pca, PC1~PC2)
