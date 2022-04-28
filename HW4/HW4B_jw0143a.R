@@ -10,6 +10,7 @@ gc()
 library(tidyverse)
 library(dplyr)
 library(e1071)
+library(DAAG) # For my dataset
 
 data("spam", package = 'kernlab')
 
@@ -61,7 +62,7 @@ spam_pca$x %>% as_tibble() %>%
   ggplot(aes(PC1, PC2, color = spam_kmeans$cluster)) + geom_point()
 
 # Trying SVM training
-svm_linear <- svm(type~., data = training, kernel = 'linear')
+svm_linear <- svm(type~., data = training, kernel = 'gamma')
 
 svm_linear <- training_input %>% svm(y = training_truth, kernel = 'linear')
 
@@ -137,51 +138,74 @@ test_results3 %>% mutate(accuracy = (tp + tn) / (tp + tn + fp + fn),
                           f1 = (2 * tp) / (2 * tp + fp + fn))
 
 # Using my dataset
-data("MedGPA", package = "Stat2Data")
 
-my_samplingframe <- MedGPA %>% select(-Accept, -Sex) %>%
-  mutate(snum = sample.int(n(), n()) / n())
+# Note: Unfortunately, as warned, this particular dataset does not separate very
+# well. I was attempting to determine if there was a correlation between 
+# any given possum's size and their sex, but the data ultimately appears to
+# demonstrate that there is no such correlation, at least for this particular
+# set.
 
-my_training <- my_samplingframe %>% filter(snum < 0.6) %>% select(-snum)
+data("possum", package = "DAAG")
+data("TV16", package = "stevedata")
 
-my_query <- my_samplingframe %>% filter(snum >= 0.6, snum < 0.8) %>% 
+View(possum)
+
+new_samplingframe <- TV16 %>% select(-state, -age, -female, -collegeed, -racef)
+
+new_samplingframe <- na.omit(new_samplingframe) %>%
+  mutate(snum = sample.int(n(), n()) / n()) 
+
+new_samplingframe <- new_samplingframe %>%
+  mutate(votedtrump = new_samplingframe$votetrump > 0)
+
+new_samplingframe <- new_samplingframe[1:5000,] %>% select(-votetrump)
+
+my_training <- new_samplingframe %>% filter(snum < 0.6) %>% select(-snum)
+
+my_query <- new_samplingframe %>% filter(snum >= 0.6, snum < 0.8) %>% 
   select(-snum)
 
-my_test <- my_samplingframe %>% filter(snum >= 0.8) %>% select(-snum)
+my_test <- new_samplingframe %>% filter(snum >= 0.8) %>% select(-snum)
 
 my_training %>% write_csv('HW4B_training.csv')
 my_query %>% write_csv('HW4B_query.csv')
 my_test %>% write_csv('HW4B_test.csv')
 
 # Separating Correct Answer / Identifying Variable
-my_tr_input <- my_training %>% select(-Acceptance)
-my_tr_truth <- my_training$Acceptance
+my_tr_input <- my_training %>% select(-votedtrump)
+my_tr_truth <- my_training$votedtrump
 
-my_q_input <- my_query %>% select(-Acceptance)
-my_q_truth <- my_query$Acceptance
+my_q_input <- my_query %>% select(-votedtrump)
+my_q_truth <- my_query$votedtrump
 
-my_t_input <- my_test %>% select(-Acceptance)
-my_t_truth <- my_test$Acceptance
+my_t_input <- my_test %>% select(-votedtrump)
+my_t_truth <- my_test$votedtrump
+
+
 
 # Training
 
-my_tr_input[is.na(my_tr_input)] <- 0
+# For this dataset, I will assume sex of a possum (binary variable) as a
+# response variable, with the measurement variables (numerical) of various body
+# parts acting as the explanatory variables. However, as there are several of
+# these body part measurement variables, I will be using principal component 
+# analysis (PCA).
 
-med_pca <- my_tr_input %>% prcomp()
+trump_pca <- my_tr_input %>% prcomp()
 
-med_pca$x %>% as_tibble %>% mutate(type = my_tr_truth) %>%
+trump_pca$x %>% as_tibble %>% mutate(type = my_tr_truth) %>%
   ggplot(aes(PC1, PC2, color = type)) + geom_point()
 
 # Trying SVM training
-my_linear <- svm(Acceptance~., data = my_training, kernel = 'linear')
+my_linear <- svm(votedtrump~., data = my_training, kernel = 'linear')
 
 my_linear <- my_tr_input %>% svm(y = my_tr_truth, kernel = 'linear')
 
-my_poly <- svm(Acceptance~., data = my_training, kernel = 'polynomial')
-my_radial <- svm(Acceptance~., data = my_training, kernel = 'radial')
-my_sigmoid <- svm(Acceptance~., data = my_training, kernel = 'sigmoid')
+my_poly <- svm(votedtrump~., data = my_training, kernel = 'polynomial')
+my_radial <- svm(votedtrump~., data = my_training, kernel = 'radial')
+my_sigmoid <- svm(votedtrump~., data = my_training, kernel = 'sigmoid')
 
-my_tr_pca <- med_pca$x %>% as_tibble() %>% mutate(type = my_tr_truth)
+my_tr_pca <- trump_pca$x %>% as_tibble() %>% mutate(type = my_tr_truth)
 
 my_sl <- svm(type~., data = my_tr_pca, kernel = 'linear')
 my_sp <- svm(type~., data = my_tr_pca, kernel = 'polynomial')
@@ -192,3 +216,62 @@ plot(my_sl, my_tr_pca, PC1~PC2)
 plot(my_sp, my_tr_pca, PC1~PC2)
 plot(my_sr, my_tr_pca, PC1~PC2)
 plot(my_ss, my_tr_pca, PC1~PC2)
+
+# SVM Query
+predict(my_linear, my_q_input)
+
+my_q_results <- tibble(my_q_truth, 
+                        my_linear = predict(my_linear, my_q_input),
+                        my_poly = predict(my_poly, my_q_input),
+                        my_radial = predict(my_radial, my_q_input),
+                        my_sigmoid = predict(my_sigmoid, my_q_input))
+
+query_results1 <- query_results %>% pivot_longer(cols=!query_truth)
+
+query_results2 <- query_results1 %>%
+  mutate(tp = (query_truth == 'spam' & value == 'spam'),
+         tn = (query_truth == 'nonspam' & value == 'nonspam'),
+         fp = (query_truth == 'nonspam' & value == 'spam'),
+         fn = (query_truth == 'spam' & value == 'nonspam'))
+
+query_results3 <- query_results2 %>% group_by(name) %>%
+  summarize(tp = sum(tp),
+            tn = sum(tn),
+            fp = sum(fp),
+            fn = sum(fn))
+
+query_results3 %>% mutate(accuracy = (tp + tn) / (tp + tn + fp + fn),
+                          sensitivity = tp / (tp + fn),
+                          specificity = tn / (tn + fp),
+                          ppv = tp / (tp + fp),
+                          npv = fn / (tn + fn),
+                          f1 = (2 * tp) / (2 * tp + fp + fn))
+
+# SVM Test
+test_results <- tibble(test_truth, 
+                       linear = predict(svm_linear, test_input))
+
+test_results1 <- test_results %>% pivot_longer(cols=!test_truth)
+
+test_results2 <- test_results1 %>%
+  mutate(tp = (test_truth == 'spam' & value == 'spam'),
+         tn = (test_truth == 'nonspam' & value == 'nonspam'),
+         fp = (test_truth == 'nonspam' & value == 'spam'),
+         fn = (test_truth == 'spam' & value == 'nonspam'))
+
+test_results3 <- test_results2 %>% group_by(name) %>%
+  summarize(tp = sum(tp),
+            tn = sum(tn),
+            fp = sum(fp),
+            fn = sum(fn))
+
+test_results3 %>% mutate(accuracy = (tp + tn) / (tp + tn + fp + fn),
+                         sensitivity = tp / (tp + fn),
+                         specificity = tn / (tn + fp),
+                         ppv = tp / (tp + fp),
+                         npv = fn / (tn + fn),
+                         f1 = (2 * tp) / (2 * tp + fp + fn))
+
+
+
+

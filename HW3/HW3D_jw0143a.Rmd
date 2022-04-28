@@ -9,6 +9,8 @@ date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
 
+> \
+
 > **SONGS CHOSEN FOR ANALYSIS**
 
 > 1. "Gurenge" - Opening Theme from anime, _Kimetsu No Yaiba (Demon Slayer)_, originally composed by LiSA
@@ -37,13 +39,13 @@ gurenge <- read_midi("Gurenge_full.mid")
 my_songs <- bind_rows(mutate(unravel, name = 'unravel'),
                    mutate(gurenge, name = 'gurenge'))
 
-my_songs_notes <- my_songs %>% filter(!is.na(pitch)) %>%
+songs_notes <- my_songs %>% filter(!is.na(pitch)) %>%
   mutate(as_music_df(pitch), end_time = time + length)
 
-my_songs_lengths <- my_songs_notes %>% group_by(name) %>%
+song_lengths <- songs_notes %>% group_by(name) %>%
   summarize(total_time = max(end_time))
 
-my_total_notes <- my_songs %>% group_by(name) %>% 
+total_notes <- my_songs %>% group_by(name) %>% 
   summarize(total_notes = sum(!is.na(pitch)))
 
 ```
@@ -52,47 +54,45 @@ my_total_notes <- my_songs %>% group_by(name) %>%
 
 > To set the stage for the analyses to be done in the future, we first familiarize ourselves with certain data and information about the music. For the purposes of the upcoming analyses, we particularly need to understand how long the songs are and how many notes are included in each MIDI file.
 
-> As depicted by the following table, we see that the last note time for _Gurenge_ is `r my_songs_lengths$total_time[1]` and the last note time for _Unravel_ is `r my_songs_lengths$total_time[2]`.\
+> As depicted by the following table, we see that the last note time for _Gurenge_ is `r song_lengths$total_time[1]` and the last note time for _Unravel_ is `r song_lengths$total_time[2]`.\
 
 ```{r}
-my_songs_lengths
+song_lengths
 
 ```
 
-> Moreover, according to the next table, we see that the note count for _Gurenge_ is `r my_total_notes$total_notes[1]`, and for _Unravel_, the note count is `r my_total_notes$total_notes[2]`\
+> Moreover, according to the next table, we see that the note count for _Gurenge_ is `r total_notes$total_notes[1]`, and for _Unravel_, the note count is `r total_notes$total_notes[2]`\
 
 ```{r}
-my_total_notes
+total_notes
 
 ```
+
+\pagebreak
 
 > **DIVIDING NOTES INTO TIME BLOCKS GIVEN NOTE COUNT**
 
-> The next step in our analysis is to evenly divide notes for each song into "time blocks", portions of the MIDI file containing a set of notes each. We divide notes for each songs by several counts of time blocks. Specifically, we performed a series of analysis, having divided the music into 10, 20, 50, and 100 time blocks.
+> The next step in our analysis is to evenly divide notes for each song into "time blocks", portions of the song containing a set of notes each. We divide notes for each songs by several counts of time blocks. Specifically, we performed a series of analysis, having divided the music into 10, 20, 50, and 100 time blocks.\
 
-> Observe the following table, representative of both songs being divided in to 10 time blocks.
-
-```{r include = FALSE}
-knitr::opts_chunk$set(fig.height = 4.25, fig.width = FALSE, fig.align = "center")
-```
+> Observe the following table, representative of both songs being divided into 10 time blocks.
 
 
 ```{r echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
-my_songs_notes <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
-  inner_join(my_total_notes)
+songs_notes <- songs_notes %>% inner_join(song_lengths) %>%
+  inner_join(total_notes)
 
-new_time_blocks <- 10
+time_blocks <- 10
 
-my_songs_notes_blocks <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
-  mutate(time_block = floor(new_time_blocks * time / total_time))
+songs_notes_blocks <- songs_notes %>% inner_join(song_lengths) %>%
+  mutate(time_block = floor(time_blocks * time / total_time))
 
-my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
+songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
   pivot_wider(names_from = name, values_from = n)
 
 
 ```
 
-> As can be implied by the data in the table, it is possible that there are changes in the song's beat and tempo in or in between certain blocks, based on wider difference in note counts in one time block versus in the succeeding time block.
+> As can be implied by the data in the table, it is possible that there are changes in the song's beat and tempo in or in between certain blocks, based on wider differences in note counts in one time block versus in the succeeding time block.
 
 > For example, in _Gurenge_, the following differences are noticed:
 
@@ -104,17 +104,17 @@ my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
 > + In Time Block 0, the note count is 184. In Time Block 1, the note count spikes sharply to 380.
 > + In Time Block 2, the note count is 326. In Time Block 3, the note count is 407.
 > + In Time Block 5, the note count has risen to 501. In Time Block 6, it has diminished to 380.
-> + In Time Block 8, the note count is 403. In Time Block 9, the note count has plummeted to 194.
+> + In Time Block 8, the note count is 403. In Time Block 9, the note count has plummeted to 194.\
 
-> Throughout our analysis, as stated, we experiment with a variety of time block counts. There are differences in what we observe with one time block count and what we observe with another. To illustrate this, observe the following table, representative of the music being divided into 20 time block counts.
+> Throughout our analysis, as stated, we experiment with a variety of time block counts. There are differences in what we observe with one time block count and what we observe with another. To illustrate this, observe the following table, representative of the music being divided into 20 time block counts.\
 
 ```{r echo = FALSE, error = FALSE, message = FALSE, warning = FALSE}
-new_time_blocks <- 20
+time_blocks <- 20
 
-my_songs_notes_blocks2 <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
-  mutate(time_block = floor(new_time_blocks * time / total_time))
+songs_notes_blocks <- songs_notes %>% inner_join(song_lengths) %>%
+  mutate(time_block = floor(time_blocks * time / total_time))
 
-my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
+songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
   pivot_wider(names_from = name, values_from = n)
 
 ```
@@ -134,58 +134,129 @@ my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
 > + From Time Blocks 1 to 2, the note count increases from 119 to 200.
 > + From Time Blocks 17 to 18, the note count drops from 221 to 102.\
 
-> How
-
 > **GRAPHICAL ANALYSIS**
-> 
+
+> One way to further visualize the note counts over the course of a song is to plot them on a graph. For larger counts of time blocks impractical for demonstration on a table, we create graphs representative of the variance in note counts per time block throughout a given song.
+
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.height = 3.55, fig.width = FALSE, fig.align = "center")
+```
+
+> To make such a visualization more insightful, we plot the note counts per time block for each individual note. It is possible to gain more insight into which notes are used more prominently in certain moments in a song by plotting to accommodate each individual note's count.\
+
+> Observe the following graph, which portrays the variance in note counts per time block for 50 time blocks in _Gurenge_, for each individual note.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, include=FALSE}
+time_blocks <- 50
+
+songs_notes_blocks <- songs_notes %>% inner_join(song_lengths) %>%
+  mutate(time_block = floor(time_blocks * time / total_time))
+
+songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
+  pivot_wider(names_from = name, values_from = n)
+```
 
 ```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-new_time_blocks <- 100
-
-my_songs_notes_blocks <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
-  mutate(time_block = floor(new_time_blocks * time / total_time))
-
-my_songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
-  pivot_wider(names_from = name, values_from = n)
-
-# Checking note usage
-
-my_songs_notes_blocks %>% count(name, note, time_block) %>%
-  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
-  facet_wrap(~note)
-
-my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
-  count(name, note, time_block) %>%
-  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
-  facet_wrap(~note)
-
-my_songs_notes_blocks %>% filter(name == 'gurenge') %>% 
-  count(name, note, time_block) %>%
-  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
-  facet_wrap(~note)
-
-
-# Normalizing / Analysis of note use over time
-my_songs_notes_blocks %>% filter(name == 'unravel') %>% 
+songs_notes_blocks %>% filter(name == 'gurenge') %>% 
   add_count(name, time_block, name = 'notes_per_block') %>% 
   add_count(note, time_block) %>%
   ggplot(aes(time_block, n / notes_per_block, group = note)) +
-  geom_line() + facet_wrap(~note)
-
-my_songs_notes_blocks %>% filter(name == 'gurenge') %>% 
-  add_count(name, time_block, name = 'notes_per_block') %>% 
-  add_count(note, time_block) %>%
-  ggplot(aes(time_block, n / notes_per_block, group = note)) +
-  geom_line() + facet_wrap(~note)
+  geom_line() + facet_wrap(~note) + 
+  labs(title = "Note Count Over Time - 'Gurenge' - 50 Time Blocks")
 
 ```
-> **PCA ANALYSIS**
 
-```{r}
-my_songs_notes_blocks2 <- my_songs_notes %>% inner_join(my_songs_lengths) %>%
-  mutate(time_block = floor(new_time_blocks * time / total_time))
+> This graph is suggestive that in general, note usage appears to be rather even, with a few spikes to acknowledge. Particularly, spikes are most evident in the note `e`. The note `e_` demonstrates a very limited amount of usage with much longer line segments in its graph, and it is evident that this note is not used until somewhere within the second quarter of the song, given where the line begins. `f` is evidently never used in the piece.\
 
-note_starts1 <- my_songs_notes_blocks2 %>% group_by(name, time_block) %>%
+> The following table depicts note counts per time block in _Unravel_ for each individual note, with the music divided into 50 time blocks.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  add_count(name, time_block, name = 'notes_per_block') %>% 
+  add_count(note, time_block) %>%
+  ggplot(aes(time_block, n / notes_per_block, group = note)) +
+  geom_line() + facet_wrap(~note) + 
+  labs(title = "Note Count Over Time - 'Unravel' - 50 Time Blocks")
+
+```
+
+> Generally, it appears that all notes are proportionately even in usage throughout this song, with the most apparent spikes and dips evident in notes `b_`, `d`, `f`, and `g`.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, include=FALSE}
+time_blocks <- 100
+
+songs_notes_blocks <- songs_notes %>% inner_join(song_lengths) %>%
+  mutate(time_block = floor(time_blocks * time / total_time))
+
+songs_notes_blocks %>% group_by(name) %>% count(time_block) %>%
+  pivot_wider(names_from = name, values_from = n)
+```
+
+> Below is a graph representative of note count variance by a measure of 100 time blocks for _Gurenge_.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+songs_notes_blocks %>% filter(name == 'gurenge') %>% 
+  add_count(name, time_block, name = 'notes_per_block') %>% 
+  add_count(note, time_block) %>%
+  ggplot(aes(time_block, n / notes_per_block, group = note)) +
+  geom_line() + facet_wrap(~note) + 
+  labs(title = "Note Count Over Time - 'Gurenge' - 100 Time Blocks")
+
+```
+
+> By increasing the time block count by 50, it seems to become evident that the note `d` is used more frequently at roughly the third quarter of the piece. `e` exhibits similar behavior in usage gain. Inconsistent use in the note `e_` remains evident, with the line segments remaining rather long in its graph, while much of the other notes' graphs begin to appear more sophisticated. It is also possible that `c` is more frequently used roughly between the first and second quarter of the piece.\
+
+> Likewise, _Unravel_ is divided into 100 time blocks and graphed, as demonstrated below.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+songs_notes_blocks %>% filter(name == 'unravel') %>% 
+  add_count(name, time_block, name = 'notes_per_block') %>% 
+  add_count(note, time_block) %>%
+  ggplot(aes(time_block, n / notes_per_block, group = note)) +
+  geom_line() + facet_wrap(~note) + 
+  labs(title = "Note Count Over Time - 'Unravel' - 100 Time Blocks")
+
+```
+> Differences are made evident in this piece as well, as a result of a time block count increase; though most notes appear to be proportionately even in usage, it can be suggested that the note `b_` experiences a sharp degradation in frequency of use at approximately midway through the song before gradually reverting to a normal use pattern, possibly becoming more heavily used by the end. Moreover, it appears that `e_`, `f`, and possibly `g` experience relatively brief moments in the piece where they are used the most frequently.\
+
+> We can plot note counts per time block for each note for both songs, as demonstrated below.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Checking note usage
+songs_notes_blocks %>% count(name, note, time_block) %>%
+  ggplot(aes(time_block, n, group = note, color =  name)) + geom_line() +
+  facet_wrap(~note) + 
+  labs(title = "Note Count Over Time - 'Gurenge' & 'Unravel' - 100 Time Blocks")
+
+```
+> The set of notes used in each song can be distinguished by observing the exclusivity of note usage for a particular note to a particular song. For example, only _Gurenge_ uses note `b`, `e`, and `g_`, while _Unravel_ exclusively uses `b_` and `f`.
+
+> We can also compare the differences in note usage by plotting data from one song on top of data from the other. While not exactly easy to evaluate through the naked eye, it appears that _Unravel_ utilizes `g` more frequently than _Gurenge_.\
+
+> Finally, we can compose a graph that plots note lengths over time blocks to gain further insight into possible temporal changes within our music.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+songs_notes_blocks %>% count(name, length, time_block) %>%
+  ggplot(aes(time_block, n, color = name)) + geom_point() + 
+  labs(title = "Note Lengths Over Time Blocks - 'Gurenge' & 'Unravel' - 100 Time Blocks")
+
+```
+
+> This graph demonstrates a considerable level of variance, indicative that there may be several areas where the tempo changes for both songs; the data for each song is spread rather sporadically. This graph is not very definitive, but it is possible that there are several portions of both songs that are slower, while they are generally fast.\
+
+> **INTER-ONSET-INTERVAL (IOI) ANALYSIS THROUGH PRINCIPAL COMPONENT ANALYSIS (PCA)**
+
+> Prior familiarity with both pieces, _Unravel_ and _Gurenge_, informs the decision to perform an analysis on the measurement of time elapsed from the earliest note in a given time block to other notes in that time block. Both songs intertwine a fast-paced and energetic motif with a calmer and subtler setting, typically belonging to the beginning. The intention is to explore and model rhythmic behavior for both pieces, using principal component analysis to make better sense of the seemingly sophisticated rhythmic structure of each song.
+
+> We can visualize this by composing a dot graph containing a series of points representative of note block counts. Each point is weighed differently; some appear larger, some appear smaller, depending on the number of note blocks belonging to a particular area.\
+
+> Such a graph is demonstrated below.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+songs_notes_blocks <- songs_notes %>% inner_join(song_lengths) %>%
+  mutate(time_block = floor(time_blocks * time / total_time))
+
+note_starts1 <- songs_notes_blocks %>% group_by(name, time_block) %>%
   arrange(time,.by_group=TRUE)
 
 note_starts2 <- note_starts1 %>% mutate(num_within_block = row_number()) %>%
@@ -197,14 +268,33 @@ note_starts3 <- note_starts2 %>%
 note_starts4 <- note_starts3 %>% 
   pivot_wider(names_from = num_within_block, values_from = time) %>% ungroup()
 
-note_starts <- note_starts4 %>% select(name, `8`:`13`)
+note_starts <- note_starts4 %>% select(name, `2`:`3`)
 
 pca_note_starts_gurenge <- note_starts %>% filter(name == 'gurenge') %>%
   select(-name) %>% prcomp()
 
 pca_note_starts_gurenge$x %>% as_tibble() %>% ggplot(aes(x = PC1, y = PC2)) +
-  geom_count()
-
-
+  geom_count() + 
+  labs(title = "IOI Analysis - 'Gurenge' - 100 Time Blocks")
 
 ```
+
+> It is apparent that there is some structural variance in _Gurenge_. There exists one exceptionally large point, indicative that this song aims for a certain rhythmic structure that is consistent or prominent throughout, however there are several large points indicative of at least 10 time blocks that maintain different structures. Interestingly, the plots are generally dispersed in a nearly even way moving to the right, with one or two exceptions. There are several rhythmic structures in this piece, it seems.\
+
+> Below is a graphical depiction of structural changes in rhythm for _Unravel_.\
+
+```{r echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+pca_note_starts_unravel <- note_starts %>% filter(name == 'unravel') %>%
+  select(-name) %>% prcomp()
+
+pca_note_starts_unravel$x %>% as_tibble() %>% ggplot(aes(x = PC1, y = PC2)) + 
+  geom_count() + 
+  labs(title = "IOI Analysis - 'Unravel' - 100 Time Blocks")
+
+```
+
+> Similarly to _Gurenge_, it appears that _Unravel_ is attempting to generally retain a certain rhythmic structure throughout the song, with some outlying action. There are several points indicative of time block counts of approximately 10, suggesting that there are several rhythmic structures sought at certain points in the song as well. Acknowledged in addition is the fact that there are quite a few outlying time block batches that appear to be spaced somewhat sporadically, though there appears to be a somewhat linear relationship with one of the batches of time blocks of approximately size 10 for some of the smaller points.\
+
+> **KEY FINDINGS AND SUMMARY**
+
+> Overall, the outcomes of the analysis are insightful and resemble the structure that was broadly understood prior. It was known that both _Gurenge_ and _Unravel_ consisted of several rhythmic changes, such as with the chorus, beginning, and ending. There are several transitions from calmer portions to verses that are more energetic and faster. The analysis allowed for a stronger understanding of specific points in which the understood structural changes may be taking place. Moreover, it was particularly understood that _Unravel_ had a seemingly fixed amount of different temporal structures, while _Gurenge_ had a more sporadic amount of different temporal structures. In other words, there were more "slow", "fast", and "faster" moments in _Gurenge_ than in _Unravel_. Generally, the IOI analysis reveals that, in a surprisingly insightful visual analysis. In the graphs, the point representative of the largest concentration of time blocks for _Unravel_ is larger than _Gurenge_'s, indicative of stronger regularity for _Unravel_. Insight was also gained into the specificities of note usage per song; it can now be inferenced which notes are more prominently used in each piece and when.
