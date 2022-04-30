@@ -4,10 +4,12 @@ output:
   
 title: "Homework 4C - DATA-312"
 author: "Jeffrey Williams"
-abstract: ""
+abstract: "This writeup explores a given cumulative dataset representative of various demographics per state county in the United States. With such a generous array of data, the objective is to perform a series of analyses that speak to potential influential relationships between a combination of categorical and numerical variables. Particularly, such analyses entail modeling "
 date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
+
+
 
 ```{r setup, include=FALSE}
 rm(list=ls())
@@ -18,12 +20,28 @@ library(modelr)
 library(e1071)
 library(usmap)
 
-megadata <- read_csv(' EduUnempPovPopCovidVoting_StatCrunchV2.csv')
+megadata <- read_csv('EduUnempPovPopCovidVoting_StatCrunchV2.csv')
 
 temporary <- megadata %>% mutate(fips = countyFIPS) 
 
 plot_usmap(regions = 'counties', data = temporary, values = 'TOT_POP', 
            include = c('CT','MA','RI'))
+
+
+megadata <- megadata %>% mutate(countyFIPS = as.factor(countyFIPS))
+
+raw_data_samplingframe <- megadata %>% mutate(snum = sample.int(n(), n()) / n())
+
+training <- raw_data_samplingframe %>% filter(snum < 0.6) %>% select(-snum)
+
+query <- raw_data_samplingframe %>% filter(snum >= 0.6, snum < 0.8) %>% 
+  select(-snum)
+
+test <- raw_data_samplingframe %>% filter(snum >= 0.8) %>% select(-snum)
+
+pennsylvania <- training %>% filter(PostalCode == 'PA')
+
+training %>% ggplot(aes(x = PCTPOVALL_2019, y = TOT_POP)) + geom_point()
 
 
 
