@@ -4,7 +4,7 @@ output:
   
 title: "Homework 4C - DATA-312"
 author: "Jeffrey Williams"
-abstract: "This writeup explores a given cumulative dataset representative of various demographics per state county in the United States. With such a generous array of data, the objective is to perform a series of analyses that speak to potential influential relationships between a combination of categorical and numerical variables. Particularly, such analyses entail modeling "
+abstract: "This writeup explores a given cumulative dataset representative of various demographics per state county in the United States. With such a generous array of data, the objective is to perform a series of analyses that speak to potential influential relationships between a combination of categorical and numerical variables. Particularly, such analyses entail modeling to determine whether "
 date: '`r format(Sys.time(), "%d, %B %Y")`'
 
 ---
@@ -37,8 +37,6 @@ megadata <- megadata %>% mutate(countyFIPS = as.factor(countyFIPS)) %>%
            as.factor(Rural_urban_continuum_code_2013)) %>%
   mutate(PoliticsGroup = as.factor(PoliticsGroup))
 
-map(megadata, is_numeric)
-
 raw_data_samplingframe <- megadata %>% mutate(snum = sample.int(n(), n()) / n())
 
 training <- raw_data_samplingframe %>% filter(snum < 0.6) %>% select(-snum)
@@ -57,5 +55,64 @@ training %>% ggplot(aes(TOT_POP)) + geom_histogram() + scale_x_log10()
 # Gathering quantitative variables
 quantitatives <- training %>% select(where(is.numeric))
 
+categoricals <- training %>% select(where(is.factor))
+
+training_pca <- quantitatives %>% prcomp()
+
+training_pca$x %>% as_tibble() %>%
+  mutate(PostalCode=training$PostalCode) %>%
+  ggplot(aes(PC1, PC2, color = PostalCode)) + geom_point()
+
+training_pca <- training %>% filter(PostalCode == 'MI') %>%
+  select(where(is.numeric)) %>% prcomp()
+
+training %>% filter(PostalCode == 'MI'|PostalCode == 'MS') %>% 
+  ggplot(aes(TOT_POP, white, color = Rural_urban_continuum_code_2013)) +
+  geom_point() +
+  facet_wrap(~PostalCode, scale = 'free_x')
+
+training %>%
+mutate(voting_rate=total_votes/TOT_POP) %>%
+ggplot(aes(white,voting_rate)) +
+geom_point() +
+facet_wrap(~Rural_urban_continuum_code_2013)
+
+lfit <- lm(total_votes/TOT_POP ~ white, data=training)
+
+training %>%
+add_residuals(lfit) %>% # Hint: this knows that we're testing prediction of
+# total_votes/TOT_POP, not some "actual" column in our data
+mutate(PostalCode=reorder(PostalCode,desc(resid))) %>%
+ggplot(aes(resid,PostalCode)) +
+geom_boxplot()
+
+training %>% mutate(employment = Civilian_labor_force_2019 / TOT_POP) %>%
+  ggplot(aes(white, employment)) + geom_point()
 
 ```
+
+> **EXPLORING DATA SET**
+
+> As previously stated, this data consists of a rather large array of quantitative variables that speak to various demographic layouts for certain states and counties across the United States. The magnitude of this data set incurs large opportunities to gain insight into trends in demographic layout that can be narrowed down to represent a particular state or county that can be supplemented by modeling scenarios. At the exploration stage, experimentation will be made with various available variables, with the goal of seeking possible influences.
+
+> In the midst of the exploration process, certain relationships were implied. An interest was present to explore potential correlations with 
+
+> **MODELING PROBLEM 1: FINDING **
+
+> In the midst of the exploration process, an interest was piqued in the particular relationship between education level and the workforce. A goal was raised with respect to determining whether the level of citizens with a certain level of education plays a role in influencing the employment or unemployment rate of a particular county.
+
+> It is evident that there is a trend upwards for the given data and it is obvio
+
+```{r}
+training %>% mutate()
+
+
+```
+
+> **MODELING PROBLEM 2**
+
+> With a more fixed amount of categorical variables provided in the data set, interest was also piqued into the relationship between certain demographic information about political and racial alignment and the density of a particular area as implied by the Rural / Urban Continuum Code. More succinctly, an inquiry is in order as to whether it can be determined if an observed county is rural or urban to certain extents from available data on Democrat/Republican presence and votes, as well as racial groups. Are White Republicans more likely to reside in rural areas? Are Black or Hispanic members of the Democratic Party more likely to reside in urban spaces?
+
+> The following graph depicts
+
+>
