@@ -27,8 +27,17 @@ temporary <- megadata %>% mutate(fips = countyFIPS)
 plot_usmap(regions = 'counties', data = temporary, values = 'TOT_POP', 
            include = c('CT','MA','RI'))
 
+# Cleaning / Sorting quantitative from categorical variables
+megadata <- megadata %>% mutate(countyFIPS = as.factor(countyFIPS)) %>%
+  mutate(StateFIPS = as.factor(StateFIPS)) %>%
+  mutate(FIPSnumber = as.factor(FIPSnumber)) %>%
+  mutate(Rural.urban_Continuum_Code_2003 = 
+           as.factor(Rural.urban_Continuum_Code_2003)) %>%
+  mutate(Rural_urban_continuum_code_2013 = 
+           as.factor(Rural_urban_continuum_code_2013)) %>%
+  mutate(PoliticsGroup = as.factor(PoliticsGroup))
 
-megadata <- megadata %>% mutate(countyFIPS = as.factor(countyFIPS))
+map(megadata, is_numeric)
 
 raw_data_samplingframe <- megadata %>% mutate(snum = sample.int(n(), n()) / n())
 
@@ -43,6 +52,10 @@ pennsylvania <- training %>% filter(PostalCode == 'PA')
 
 training %>% ggplot(aes(x = PCTPOVALL_2019, y = TOT_POP)) + geom_point()
 
+training %>% ggplot(aes(TOT_POP)) + geom_histogram() + scale_x_log10()
+
+# Gathering quantitative variables
+quantitatives <- training %>% select(where(is.numeric))
 
 
 ```
