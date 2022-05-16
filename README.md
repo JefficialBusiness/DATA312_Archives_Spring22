@@ -9,4 +9,4 @@ Work in this course entails a series of units divided by subject matter through 
 - HW1:
 - HW2: Text and Sentiment Analysis
 - HW3: Music Analysis with WAV and MIDI data
-- HW4: Basic Machine Learning Techniques (linear regression and Support Vector Machines (SVM)
+- HW4: Basic Machine Learning Techniques (linear regression, Support Vector Machines (SVM))
